@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X-PROJECT // Приватное ПО</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -23,6 +23,7 @@
             --discount-color: #22c55e;
             --glass-bg: rgba(5, 5, 5, 0.7);
             --input-bg: #000000;
+            --scanline-opacity: 0.03;
         }
 
         [data-theme="light"] {
@@ -36,23 +37,60 @@
             --accent-glow: rgba(37, 99, 235, 0.4);
             --glass-bg: rgba(240, 240, 243, 0.8);
             --input-bg: #ffffff;
+            --scanline-opacity: 0;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; cursor: none !important; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
 
         body {
             background-color: var(--bg-main); color: var(--text-main); line-height: 1.5;
             overflow-x: hidden; transition: background-color 0.5s ease, color 0.5s ease;
         }
 
+        a, button, .hover-target, .card { cursor: pointer; }
+        input, select { cursor: text; }
+
+        /* --- КАСТОМНЫЙ СКРОЛЛБАР --- */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+        /* --- CRT SCANLINES --- */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%; pointer-events: none; opacity: var(--scanline-opacity); transition: opacity 0.5s;
+        }
+
+        /* --- ЭФФЕКТ RIPPLE ДЛЯ КНОПОК --- */
+        .ripple-btn { position: relative; overflow: hidden; }
+        .ripple {
+            position: absolute; border-radius: 50%; transform: scale(0);
+            animation: ripple-anim 0.6s linear; background: rgba(255, 255, 255, 0.3); pointer-events: none;
+        }
+        @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
+
+        /* --- ПРЕЛОАДЕР --- */
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000000;
+            display: flex; align-items: center; justify-content: center; flex-direction: column; transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        .term-container { text-align: left; max-width: 600px; width: 90%; font-family: 'JetBrains Mono', monospace; }
+        .term-line { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--status-green); margin-bottom: 5px; opacity: 0; text-shadow: 0 0 8px var(--status-green); }
+        .term-cursor { display: inline-block; width: 10px; height: 18px; background: var(--status-green); animation: blink 1s step-end infinite; vertical-align: bottom; box-shadow: 0 0 8px var(--status-green); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
         /* --- КАСТОМНЫЙ КУРСОР --- */
-        .cursor-dot { width: 6px; height: 6px; background: var(--accent-color); position: fixed; border-radius: 50%; pointer-events: none; z-index: 9999999; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s; box-shadow: 0 0 10px var(--accent-glow); }
-        .cursor-outline { width: 30px; height: 30px; border: 2px solid var(--accent-color); position: fixed; border-radius: 50%; pointer-events: none; z-index: 9999998; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background 0.2s; box-sizing: border-box; }
+        .cursor-dot { width: 6px; height: 6px; background: var(--accent-color); position: fixed; border-radius: 50%; pointer-events: none !important; z-index: 9999999; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s; box-shadow: 0 0 10px var(--accent-glow); }
+        .cursor-outline { width: 30px; height: 30px; border: 2px solid var(--accent-color); position: fixed; border-radius: 50%; pointer-events: none !important; z-index: 9999998; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background 0.2s; box-sizing: border-box; }
         .cursor-outline.hovering { width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-color: transparent; }
+        .cursor-outline.clicking { transform: translate(-50%, -50%) scale(0.8); border-color: #fff; }
 
         /* --- ФОН С ЧАСТИЦАМИ --- */
         #particles-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; }
-        .bg-glow { position: fixed; top: -20%; left: 30%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 60%); z-index: -3; pointer-events: none; }
+        .bg-glow { position: fixed; top: -20%; left: 30%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 60%); z-index: -3; pointer-events: none; animation: pulseGlow 8s infinite alternate; }
+        @keyframes pulseGlow { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
 
         /* --- НАВИГАЦИЯ --- */
         nav {
@@ -60,9 +98,10 @@
             background: var(--glass-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color);
             position: fixed; width: 100%; top: 0; z-index: 100; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
-        .logo-icon { color: var(--accent-color); font-size: 28px; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-        .logo:hover .logo-icon { transform: rotate(180deg); }
+        .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .logo-icon { color: var(--accent-color); font-size: 28px; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); filter: drop-shadow(0 0 10px var(--accent-glow)); }
+        .logo:hover { animation: glitchText 0.2s linear infinite; color: var(--accent-color); text-shadow: 2px 0 red, -2px 0 cyan; }
+        .logo:hover .logo-icon { transform: rotate(180deg) scale(1.1); }
 
         .controls { display: flex; align-items: center; gap: 15px; }
         .controls select, .theme-btn {
@@ -74,131 +113,188 @@
 
         /* --- ГЛАВНЫЙ ЭКРАН --- */
         header { margin-top: 80px; padding: 100px 5% 40px; text-align: center; position: relative; }
-        header h1 { font-size: 60px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 24px; line-height: 1.1; position: relative; display: inline-block; }
+        header h1 { font-size: 60px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 24px; line-height: 1.1; position: relative; display: inline-block; text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         header h1 .highlight {
             background: linear-gradient(270deg, #60a5fa, #3b82f6, #8b5cf6, #3b82f6);
             background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             animation: gradientMove 5s ease infinite;
         }
         @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        header h1:hover { animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite; color: var(--accent-color); }
-        @keyframes glitch { 0% { transform: translate(0) } 20% { transform: translate(-2px, 2px) } 40% { transform: translate(-2px, -2px) } 60% { transform: translate(2px, 2px) } 80% { transform: translate(2px, -2px) } 100% { transform: translate(0) } }
+        header h1:hover { animation: glitchText 0.3s cubic-bezier(.25, .46, .45, .94) both infinite; }
+        @keyframes glitchText { 
+            0% { transform: translate(0); text-shadow: none; } 
+            20% { transform: translate(-2px, 2px); text-shadow: 2px 0 #0ff, -2px 0 #f00; } 
+            40% { transform: translate(-2px, -2px); text-shadow: -2px 0 #0ff, 2px 0 #f00; } 
+            60% { transform: translate(2px, 2px); text-shadow: 2px 0 #0ff, -2px 0 #f00; } 
+            80% { transform: translate(2px, -2px); text-shadow: -2px 0 #0ff, 2px 0 #f00; } 
+            100% { transform: translate(0); text-shadow: none; } 
+        }
+        
         header p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; transition: color 0.4s; }
 
         .launcher-btn-wrap { margin-top: 35px; }
         .launcher-btn {
             background: rgba(59, 130, 246, 0.1); border: 2px solid var(--accent-color); color: var(--text-main);
             padding: 16px 40px; font-size: 18px; font-weight: 800; border-radius: 12px; text-transform: uppercase;
-            letter-spacing: 1px; transition: all 0.3s; box-shadow: 0 0 25px rgba(59, 130, 246, 0.3); outline: none;
+            letter-spacing: 1px; transition: all 0.3s; box-shadow: 0 0 25px rgba(59, 130, 246, 0.3); outline: none; position: relative;
         }
-        .launcher-btn:hover { background: var(--accent-color); color: #fff; transform: scale(1.05); box-shadow: 0 0 40px rgba(59, 130, 246, 0.7); }
+        .launcher-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent); transform: skewX(-20deg); transition: 0.5s; pointer-events: none;}
+        .launcher-btn:hover::before { left: 150%; }
+        .launcher-btn:hover { background: var(--accent-color); color: #fff; transform: scale(1.05) translateY(-5px); box-shadow: 0 10px 40px rgba(59, 130, 246, 0.7); }
         .launcher-btn i { margin-right: 8px; }
 
         /* --- СТАТИСТИКА --- */
         .stats-container { display: flex; justify-content: center; gap: 50px; margin: 50px auto 40px; max-width: 800px; flex-wrap: wrap; }
-        .stat-box { text-align: center; transition: 0.3s; padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid transparent; }
-        .stat-box:hover { transform: translateY(-10px); border-color: var(--border-color); background: var(--bg-card); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .stat-box { text-align: center; transition: 0.3s; padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid transparent; backdrop-filter: blur(5px); }
+        .stat-box:hover { transform: translateY(-10px) scale(1.05); border-color: var(--accent-color); background: var(--bg-card); box-shadow: 0 15px 35px var(--accent-glow); }
         .stat-box h3 { font-size: 40px; font-weight: 800; color: var(--text-main); margin-bottom: 5px; text-shadow: 0 0 20px var(--accent-glow); }
         .stat-box p { font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* --- Бегущая строка --- */
+        /* --- БЕГУЩАЯ СТРОКА --- */
         .ticker-wrap { width: 100%; overflow: hidden; background: var(--bg-card); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 12px 0; margin-bottom: 60px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
         .ticker { display: inline-flex; white-space: nowrap; padding-right: 100%; box-sizing: content-box; animation: tickerAnim 30s linear infinite; }
-        .ticker-item { display: inline-flex; align-items: center; gap: 8px; margin-right: 40px; font-size: 14px; font-weight: 500; color: var(--text-muted); }
+        .ticker-item { display: inline-flex; align-items: center; gap: 8px; margin-right: 40px; font-size: 14px; font-weight: 500; color: var(--text-muted); transition: 0.3s; }
+        .ticker-item:hover { transform: scale(1.1); color: var(--text-main); }
         .ticker-item .user { color: var(--text-main); font-weight: 700; }
         .ticker-item .game { color: var(--accent-color); font-weight: 700; }
-        .ticker-item i { color: var(--status-green); }
+        .ticker-item i { color: var(--status-green); filter: drop-shadow(0 0 5px var(--status-green)); }
         @keyframes tickerAnim { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
 
-        /* --- АНИМАЦИИ ПОЯВЛЕНИЯ ПРИ СКРОЛЛЕ --- */
+        /* --- АНИМАЦИЯ ПРИ СКРОЛЛЕ --- */
         .fade-up { opacity: 0; transform: translateY(50px) scale(0.95); transition: opacity 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .fade-up.visible { opacity: 1; transform: translateY(0) scale(1); }
 
-        /* --- КАТАЛОГ И КАРТОЧКИ --- */
-        .section-title { text-align: center; font-size: 32px; font-weight: 800; margin-bottom: 40px; color: var(--text-main); }
+        /* --- ПОИСК --- */
+        .search-container { max-width: 600px; margin: 0 auto 40px auto; position: relative; padding: 0 5%; perspective: 1000px; }
+        .search-container input {
+            width: 100%; padding: 16px 24px; padding-left: 50px; background: var(--bg-card); border: 1px solid var(--border-color);
+            color: var(--text-main); font-size: 16px; font-weight: 500; border-radius: 12px; outline: none; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); transform-style: preserve-3d;
+        }
+        .search-container input:focus { border-color: var(--accent-color); box-shadow: 0 15px 35px var(--accent-glow); transform: translateZ(20px); }
+        .search-container i { position: absolute; left: calc(5% + 20px); top: 50%; transform: translateY(-50%) translateZ(25px); color: var(--text-muted); font-size: 18px; transition: 0.3s; }
+        .search-container input:focus + i { color: var(--accent-color); text-shadow: 0 0 10px var(--accent-glow); }
+
+        /* --- КАТАЛОГ И КАРТОЧКИ (FULL 3D PARALLAX) --- */
+        .section-title { text-align: center; font-size: 32px; font-weight: 800; margin-bottom: 20px; color: var(--text-main); text-transform: uppercase; letter-spacing: 2px; }
         .catalog { padding: 0 5% 80px; max-width: 1400px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; perspective: 1500px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; perspective: 2000px; }
 
         .card {
             background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px;
             padding: 32px; display: flex; flex-direction: column; position: relative;
-            transform-style: preserve-3d; transition: all 0.4s ease; overflow: hidden;
+            transform-style: preserve-3d; transition: transform 0.4s ease, border-color 0.4s, background 0.4s, box-shadow 0.4s; overflow: visible; 
+            z-index: 1;
         }
-        .card::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent); transform: skewX(-20deg); transition: 0.5s; z-index: 1; pointer-events: none; }
-        .card:hover::before { left: 150%; transition: 0.7s; }
-        .card-inner { transform: translateZ(40px); pointer-events: none; z-index: 2; position: relative; }
-        .card:hover { border-color: var(--accent-color); background: var(--bg-card-hover); box-shadow: 0 30px 60px -15px var(--accent-glow); }
+        
+        .card::before {
+            content: ''; position: absolute; inset: -1px; border-radius: 21px;
+            background: linear-gradient(45deg, transparent, var(--accent-color), transparent, var(--status-green), transparent);
+            background-size: 200% 200%; z-index: -1; opacity: 0; transition: opacity 0.4s; animation: gradientMove 3s linear infinite; pointer-events: none;
+        }
+        .card:hover::before { opacity: 1; }
 
-        .card-icon { width: 54px; height: 54px; background: rgba(150, 150, 150, 0.05); border: 1px solid var(--border-color); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--text-main); margin-bottom: 24px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .card:hover .card-icon { background: var(--accent-color); color: #fff; border-color: var(--accent-color); transform: translateZ(50px) scale(1.1); box-shadow: 0 0 20px var(--accent-glow); }
+        .card::after {
+            content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 100%; border-radius: 20px;
+            background: radial-gradient(600px circle at var(--mouse-x, 0) var(--mouse-y, 0), rgba(255,255,255,0.08), transparent 40%);
+            z-index: 1; pointer-events: none; opacity: 0; transition: opacity 0.4s;
+        }
+        .card:hover::after { opacity: 1; }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-        .game-title { font-size: 24px; font-weight: 800; color: var(--text-main); }
-        .game-subtitle { font-size: 14px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+        .card:hover { background: var(--bg-card-hover); box-shadow: 0 30px 60px -15px var(--accent-glow); z-index: 10; }
 
-        .status { background: var(--status-green-bg); color: var(--status-green); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .card-inner { transform-style: preserve-3d; pointer-events: none; z-index: 2; position: relative; height: 100%; display: flex; flex-direction: column; }
+        
+        .card-icon { 
+            width: 54px; height: 54px; background: rgba(150, 150, 150, 0.05); border: 1px solid var(--border-color); border-radius: 14px; 
+            display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--text-main); margin-bottom: 24px; 
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateZ(30px); 
+        }
+        .card:hover .card-icon { background: var(--accent-color); color: #fff; border-color: var(--accent-color); transform: translateZ(80px) scale(1.1); box-shadow: 0 15px 25px var(--accent-glow); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; transform: translateZ(20px); transition: 0.4s; }
+        .card:hover .card-header { transform: translateZ(50px); }
+        
+        .game-title { font-size: 24px; font-weight: 800; color: var(--text-main); transform: translateZ(20px); transition: 0.4s;}
+        .card:hover .game-title { transform: translateZ(60px); color: var(--accent-color); text-shadow: 0 5px 15px var(--accent-glow);}
+        
+        .game-subtitle { font-size: 14px; color: var(--text-muted); margin-top: 4px; font-weight: 500; transform: translateZ(10px); transition: 0.4s;}
+        .card:hover .game-subtitle { transform: translateZ(40px); }
+
+        .status { background: var(--status-green-bg); color: var(--status-green); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; transform: translateZ(0); transition: 0.4s;}
+        .card:hover .status { transform: translateZ(40px); box-shadow: 0 5px 15px var(--status-green-bg); }
         .status::before { content: ''; width: 6px; height: 6px; background: var(--status-green); border-radius: 50%; box-shadow: 0 0 10px var(--status-green); animation: pulseStatus 1.5s infinite; }
-        @keyframes pulseStatus { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
-
-        .features-list { list-style: none; margin-bottom: 32px; flex-grow: 1; }
-        .features-list li { margin-bottom: 12px; font-size: 14px; color: var(--text-muted); display: flex; align-items: center; gap: 10px; font-weight: 500; transition: color 0.3s; }
+        
+        .features-list { list-style: none; margin-bottom: 32px; flex-grow: 1; transform: translateZ(15px); transition: 0.4s; pointer-events: auto; }
+        .card:hover .features-list { transform: translateZ(35px); }
+        .features-list li { margin-bottom: 12px; font-size: 14px; color: var(--text-muted); display: flex; align-items: center; gap: 10px; font-weight: 500; transition: transform 0.3s, color 0.3s; }
         .card:hover .features-list li { color: var(--text-main); }
+        .card:hover .features-list li:hover { transform: translateX(5px) translateZ(10px); color: var(--accent-color); }
         .features-list li i { color: var(--accent-color); font-size: 12px; }
 
-        .price-row { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--border-color); pointer-events: auto; }
-        .price { font-size: 28px; font-weight: 800; }
+        .price-row { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--border-color); pointer-events: auto; z-index: 10; position: relative; transform: translateZ(20px); transition: 0.4s;}
+        .card:hover .price-row { transform: translateZ(60px); border-color: rgba(59, 130, 246, 0.3); }
+        .price { font-size: 28px; font-weight: 800; transition: 0.3s;}
+        .card:hover .price { color: var(--accent-color); text-shadow: 0 5px 15px var(--accent-glow); }
         .price span { font-size: 14px; color: var(--text-muted); font-weight: 600; }
 
-        .buy-btn { padding: 12px 24px; background: var(--bg-main); color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 700; border-radius: 10px; transition: all 0.3s; border: 1px solid var(--border-color); position: relative; overflow: hidden; }
-        .card:hover .buy-btn { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
+        .buy-btn { padding: 12px 24px; background: var(--bg-main); color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 700; border-radius: 10px; transition: all 0.3s; border: 1px solid var(--border-color); position: relative; overflow: hidden; transform: translateZ(0); }
+        .card:hover .buy-btn { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 10px 25px var(--accent-glow); transform: translateZ(20px); }
 
-        /* --- МОДАЛЬНЫЕ ОКНА --- */
+        /* --- ИСПРАВЛЕННЫЕ МОДАЛЬНЫЕ ОКНА (БЕЗ КОНФЛИКТОВ 3D) --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(20px);
             z-index: 10000; display: flex; justify-content: center; align-items: center;
-            opacity: 0; visibility: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0; visibility: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); perspective: 2000px;
         }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         
         .modal-content {
+            --rotate-x: 0deg; --rotate-y: 0deg;
             background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 24px;
-            padding: 40px; max-width: 550px; width: 90%; position: relative;
-            transform: scale(0.8) rotateX(-20deg) translateY(50px); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8); max-height: 90vh; overflow-y: auto;
+            padding: 40px; max-width: 580px; width: 90%; position: relative;
+            transform: scale(0.7) rotateX(30deg) rotateY(-20deg) translateZ(-500px); 
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.9), 0 0 50px var(--accent-glow); 
+            max-height: 90vh; overflow-y: auto; overflow-x: hidden; pointer-events: auto;
+            /* Убрано transform-style: preserve-3d; для корректного скролла */
         }
+        .modal-overlay.active .modal-content { transform: scale(1) rotateX(var(--rotate-x)) rotateY(var(--rotate-y)) translateZ(0); }
         .modal-content::-webkit-scrollbar { width: 6px; }
         .modal-content::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
-        .modal-overlay.active .modal-content { transform: scale(1) rotateX(0) translateY(0); }
 
-        .close-btn { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; background: var(--bg-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--text-muted); transition: all 0.3s; border: 1px solid var(--border-color); }
-        .close-btn:hover { background: var(--border-color); color: var(--text-main); transform: rotate(180deg) scale(1.1); }
+        /* Внутренние элементы окна (теперь 2D, чтобы не ломался скролл) */
+        .close-btn { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; background: var(--bg-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--text-muted); transition: all 0.3s; border: 1px solid var(--border-color); z-index: 100; }
+        .close-btn:hover { background: #ef4444; color: #fff; border-color: #ef4444; transform: rotate(180deg) scale(1.1); box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
 
-        /* Окно товара */
         .modal-header { margin-bottom: 24px; }
-        .modal-title { font-size: 32px; font-weight: 800; }
-        .modal-desc { font-size: 15px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; }
-        .modal-features { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+        .modal-title { font-size: 32px; font-weight: 800; color: var(--accent-color); text-shadow: 0 0 15px var(--accent-glow); }
+        .modal-desc { font-size: 14px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; font-weight: 500; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border-left: 3px solid var(--accent-color); }
+        .modal-features { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
         
         .configs-section { margin-bottom: 25px; }
         .configs-title { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .configs-title span { font-size: 12px; background: rgba(59, 130, 246, 0.15); color: var(--accent-color); padding: 4px 10px; border-radius: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;}
+        .configs-title span { font-size: 12px; background: rgba(59, 130, 246, 0.15); color: var(--accent-color); padding: 4px 10px; border-radius: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 10px var(--accent-glow);}
+        
         .config-list { display: flex; flex-direction: column; gap: 10px; }
-        .config-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; transition: 0.3s; }
-        .config-item:hover { border-color: var(--text-muted); transform: translateX(5px); }
-        .config-item.active { border-color: var(--accent-color); background: rgba(59, 130, 246, 0.05); transform: translateX(5px); }
+        .config-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .config-item:hover { border-color: var(--text-muted); transform: translateX(5px) scale(1.02); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .config-item.active { border-color: var(--accent-color); background: rgba(59, 130, 246, 0.05); transform: translateX(5px) scale(1.02); box-shadow: 0 10px 25px var(--accent-glow); }
         .config-info { display: flex; flex-direction: column; gap: 4px; }
-        .config-name { font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .config-name { font-size: 15px; font-weight: 700; color: var(--text-main); transition: 0.3s; }
+        .config-item.active .config-name { color: var(--accent-color); }
         .config-price-tag { font-size: 13px; color: var(--text-muted); font-weight: 500;}
-        .config-item.active .config-price-tag { color: var(--accent-color); font-weight: 700; }
+        .config-item.active .config-price-tag { color: var(--status-green); font-weight: 700; text-shadow: 0 0 10px var(--status-green); }
         .config-checkbox { width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--border-color); display: flex; justify-content: center; align-items: center; transition: 0.3s; background: var(--bg-card); }
-        .config-item.active .config-checkbox { background: var(--accent-color); border-color: var(--accent-color); box-shadow: 0 0 10px var(--accent-glow); }
-        .config-item.active .config-checkbox::after { content: '\f00c'; font-family: 'FontAwesome'; font-size: 14px; color: #fff; font-weight: 900; }
+        .config-item.active .config-checkbox { background: var(--accent-color); border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
+        .config-item.active .config-checkbox::after { content: '\f00c'; font-family: 'FontAwesome'; font-size: 14px; color: #fff; font-weight: 900; animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
 
         .coupon-box { display: flex; gap: 12px; margin-bottom: 20px; }
         .coupon-box input { flex-grow: 1; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; color: var(--text-main); font-size: 15px; font-weight: 600; outline: none; transition: 0.3s; }
-        .coupon-box input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-        .coupon-btn { padding: 14px 24px; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-size: 15px; font-weight: 700; transition: 0.3s; }
+        .coupon-box input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); }
+        .coupon-btn { padding: 14px 24px; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-size: 15px; font-weight: 700; transition: 0.3s; cursor: pointer; }
         .coupon-btn:hover { background: var(--border-color); transform: translateY(-2px); }
         .coupon-msg { font-size: 14px; margin-top: -10px; margin-bottom: 20px; font-weight: 600; display: none; animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -209,46 +305,53 @@
         .modal-buy-btn {
             display: inline-block; width: 100%; padding: 18px; background: linear-gradient(90deg, #2563eb, #3b82f6);
             color: #fff; text-align: center; text-decoration: none; font-size: 18px; font-weight: 800; border-radius: 12px; transition: 0.3s;
-            box-shadow: 0 10px 25px -5px var(--accent-glow); position: relative; overflow: hidden; border: none;
+            box-shadow: 0 10px 25px -5px var(--accent-glow); position: relative; border: none; cursor: pointer;
         }
-        .modal-buy-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent); transform: skewX(-20deg); transition: 0.5s; }
-        .modal-buy-btn:hover::before { left: 150%; }
-        .modal-buy-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px var(--accent-glow); }
+        .modal-buy-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 20px 40px -5px var(--accent-glow); }
 
-        /* --- Блок предупреждения (False Positive) --- */
         .warning-box { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 15px; margin-bottom: 25px; font-size: 13px; color: #fca5a5; text-align: left; line-height: 1.5; }
         .warning-box strong { color: #ef4444; }
 
-        /* Окно Лаунчера */
-        #launcherModal .modal-content { text-align: center; max-width: 480px; }
-
         /* --- TOAST УВЕДОМЛЕНИЯ --- */
-        #toast-container { position: fixed; bottom: 30px; left: 30px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, toastOut 0.5s 4.5s ease-in forwards; }
-        .toast-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); color: var(--accent-color); display: flex; justify-content: center; align-items: center; font-size: 18px; border: 1px solid rgba(59, 130, 246, 0.3);}
+        #toast-container { position: fixed; bottom: 30px; left: 30px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; perspective: 1000px;}
+        .toast { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); animation: toastIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, toastOut 0.5s 4.5s ease-in forwards; transform-origin: left center;}
+        .toast-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); color: var(--accent-color); display: flex; justify-content: center; align-items: center; font-size: 18px; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 0 15px var(--accent-glow);}
         .toast-content { display: flex; flex-direction: column; }
         .toast-title { font-size: 14px; font-weight: 700; color: var(--text-main); }
         .toast-desc { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-        @keyframes toastIn { from { opacity: 0; transform: translateX(-50px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
-        @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-100px) rotateY(-45deg) scale(0.8); } to { opacity: 1; transform: translateX(0) rotateY(0) scale(1); } }
+        @keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(30px) scale(0.8); } }
 
         /* --- КОНТЕКСТНОЕ МЕНЮ --- */
         #custom-menu {
             position: fixed; background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--border-color);
             border-radius: 12px; padding: 8px; width: 220px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            z-index: 100000; opacity: 0; visibility: hidden; transform: scale(0.95); transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+            z-index: 100000; opacity: 0; visibility: hidden; transform: scale(0.8) translateY(10px); transition: opacity 0.2s, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), visibility 0.2s;
         }
-        #custom-menu.active { opacity: 1; visibility: visible; transform: scale(1); }
-        .menu-item { padding: 10px 15px; font-size: 14px; color: var(--text-main); border-radius: 8px; display: flex; align-items: center; gap: 10px; transition: 0.2s; font-weight: 500; }
-        .menu-item:hover { background: var(--accent-color); color: #fff; }
+        #custom-menu.active { opacity: 1; visibility: visible; transform: scale(1) translateY(0); pointer-events: auto; }
+        .menu-item { padding: 10px 15px; font-size: 14px; color: var(--text-main); border-radius: 8px; display: flex; align-items: center; gap: 10px; transition: 0.2s; font-weight: 500; cursor: pointer; }
+        .menu-item:hover { background: var(--accent-color); color: #fff; transform: translateX(5px); box-shadow: 0 0 10px var(--accent-glow);}
         .menu-separator { height: 1px; background: var(--border-color); margin: 5px 0; }
 
         footer { text-align: center; padding: 40px 20px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 14px; background: var(--bg-card); margin-top: 50px; }
-        footer a { color: var(--accent-color); text-decoration: none; font-weight: 600; }
-        footer a:hover { text-decoration: underline; }
+        footer a { color: var(--accent-color); text-decoration: none; font-weight: 600; transition: 0.3s; }
+        footer a:hover { text-decoration: underline; text-shadow: 0 0 10px var(--accent-glow); }
+        
+        .card.hidden { display: none !important; }
     </style>
 </head>
 <body>
+    
+    <!-- ТЕРМИНАЛ / ПРЕЛОАДЕР -->
+    <div id="preloader">
+        <div class="term-container">
+            <div id="term-content"></div>
+            <span class="term-cursor"></span>
+        </div>
+    </div>
+
+    <!-- CRT SCANLINES -->
+    <div class="scanlines"></div>
 
     <div class="cursor-dot" id="cursor-dot"></div>
     <div class="cursor-outline" id="cursor-outline"></div>
@@ -280,7 +383,7 @@
                 <option value="ru">RU</option>
                 <option value="en">EN</option>
             </select>
-            <div class="theme-btn hover-target" id="themeToggle"><i class="fa-solid fa-moon"></i></div>
+            <div class="theme-btn hover-target ripple-btn" id="themeToggle"><i class="fa-solid fa-moon"></i></div>
         </div>
     </nav>
 
@@ -289,7 +392,7 @@
         <p data-i18n="desc">Премиум алгоритмы и обход современных античитов. Мы обеспечиваем максимальную безопасность и стабильность.</p>
         
         <div class="launcher-btn-wrap">
-            <button class="launcher-btn hover-target" id="openLauncherBtn">
+            <button class="launcher-btn hover-target ripple-btn" id="openLauncherBtn">
                 <i class="fa-solid fa-cloud-arrow-down"></i> <span data-i18n="btn_launcher_main">Скачать лаунчер</span>
             </button>
         </div>
@@ -313,12 +416,19 @@
     <div class="ticker-wrap fade-up">
         <div class="ticker" id="tickerContent"></div>
     </div>
+    
+    <!-- СТРОКА ПОИСКА -->
+    <div class="search-container fade-up">
+        <input type="text" id="gameSearch" data-i18n-placeholder="search_placeholder" placeholder="Поиск по играм..." class="hover-target">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
 
-    <section class="catalog">
+    <!-- КАТАЛОГ С КОНФИГАМИ И ID ИГР -->
+    <section class="catalog" id="catalogSection">
         <h2 class="section-title fade-up" data-i18n="catalog_title">Наш Каталог</h2>
-        <div class="grid">
+        <div class="grid" id="gamesGrid">
             
-            <div class="card fade-up hover-target" data-base-price="250" data-configs='[{"n":"Safe Conqueror CFG", "p":60}, {"n":"Brutal Rage iPadView", "p":90}]'>
+            <div class="card fade-up" data-game-id="pubg" data-base-price="250" data-configs='[{"n":"Safe Conqueror CFG", "p":60}, {"n":"Brutal Rage Setup", "p":90}, {"n":"Tournament Bypass", "p":150}, {"n":"Streamer Mode", "p":50}, {"n":"Magic Bullet Plus", "p":120}, {"n":"Auto-Loot Script", "p":70}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
@@ -336,11 +446,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">250</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="240" data-configs='[{"n":"Legit Rank Up Profile", "p":50}, {"n":"Rage Soft Trigger", "p":80}]'>
+            <div class="card fade-up" data-game-id="codm" data-base-price="240" data-configs='[{"n":"Legit Rank Up Profile", "p":50}, {"n":"Rage Soft Trigger", "p":80}, {"n":"Sniper Prediction CFG", "p":70}, {"n":"Championship Safe", "p":120}, {"n":"ESP Only (Ultra Safe)", "p":40}, {"n":"Item & Loot ESP", "p":30}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-jet-fighter"></i></div>
@@ -358,11 +468,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">240</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="150" data-configs='[{"n":"Auto-Headshot Pro", "p":30}]'>
+            <div class="card fade-up" data-game-id="ff" data-base-price="150" data-configs='[{"n":"Auto-Headshot Pro", "p":30}, {"n":"Magic Bullet Config", "p":60}, {"n":"Wallhack Only (Safe)", "p":20}, {"n":"High Fire Rate Macro", "p":40}, {"n":"Gloo Wall Fast Macro", "p":25}, {"n":"Anti-Report System", "p":50}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-fire"></i></div>
@@ -380,11 +490,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">150</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="299" data-configs='[{"n":"God Mode + Teleport All", "p":80}]'>
+            <div class="card fade-up" data-game-id="gi" data-base-price="299" data-configs='[{"n":"God Mode Active", "p":80}, {"n":"Auto-Farm Domains", "p":100}, {"n":"Quest Dialog Skipper", "p":40}, {"n":"Chest ESP Max", "p":50}, {"n":"No Clip / Fly Mode", "p":70}, {"n":"Damage Multiplier", "p":150}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
@@ -402,11 +512,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">299</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="590" data-configs='[{"n":"Full Loot Filter", "p":100}, {"n":"Rage Silent", "p":140}]'>
+            <div class="card fade-up" data-game-id="ab" data-base-price="590" data-configs='[{"n":"Full Loot Filter", "p":100}, {"n":"Rage Silent Aim", "p":140}, {"n":"Auto-Loot Speed Bot", "p":200}, {"n":"Thermal Vision Mod", "p":120}, {"n":"Extract/Exit ESP", "p":60}, {"n":"Zero Recoil/Sway", "p":90}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-mask-ventilator"></i></div>
@@ -424,11 +534,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">590</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="290" data-configs='[{"n":"Legit CFG by Admin", "p":50}, {"n":"Rage / HvH CFG", "p":90}, {"n":"Faceit Safe CFG", "p":150}]'>
+            <div class="card fade-up" data-game-id="cs2" data-base-price="290" data-configs='[{"n":"Legit CFG by Admin", "p":50}, {"n":"Rage / HvH CFG", "p":90}, {"n":"Faceit Safe CFG", "p":150}, {"n":"Movement Recorder", "p":70}, {"n":"Grenade Helper Plus", "p":60}, {"n":"Skinchanger Premium", "p":80}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-crosshairs"></i></div>
@@ -446,11 +556,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">290</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="790" data-configs='[{"n":"M249 Beam Macro", "p":100}, {"n":"Streamer Safe CFG", "p":80}]'>
+            <div class="card fade-up" data-game-id="rust" data-base-price="790" data-configs='[{"n":"M249 Beam Macro", "p":100}, {"n":"Streamer Safe CFG", "p":80}, {"n":"Auto-Gather Bot", "p":150}, {"n":"Raid/Base ESP", "p":120}, {"n":"Always Day / Clear Cave", "p":50}, {"n":"Spiderman / Climb", "p":90}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-radiation"></i></div>
@@ -468,11 +578,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">790</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="1290" data-configs='[{"n":"Radiant Legit Profile", "p":200}, {"n":"Aggressive Trigger CFG", "p":150}]'>
+            <div class="card fade-up" data-game-id="val" data-base-price="1290" data-configs='[{"n":"Radiant Legit Profile", "p":200}, {"n":"Aggressive Trigger CFG", "p":150}, {"n":"Flick Bot Precision", "p":250}, {"n":"Agent Skill ESP", "p":180}, {"n":"Color Auto-Aim", "p":100}, {"n":"Sheriff/Op God Setup", "p":120}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-shield-halved"></i></div>
@@ -490,11 +600,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">1290</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="390" data-configs='[{"n":"FNCS Winner CFG", "p":150}, {"n":"W-Key Rage CFG", "p":99}]'>
+            <div class="card fade-up" data-game-id="fn" data-base-price="390" data-configs='[{"n":"FNCS Winner CFG", "p":150}, {"n":"W-Key Rage CFG", "p":99}, {"n":"Auto-Build Scripts", "p":120}, {"n":"Aimbot + Prediction", "p":180}, {"n":"Loot ESP Filter", "p":60}, {"n":"Zero Delay Edit", "p":80}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-person-skating"></i></div>
@@ -512,11 +622,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">390</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="190" data-configs='[{"n":"Hypixel Bypass CFG", "p":60}, {"n":"Anarchy PvP CFG", "p":80}]'>
+            <div class="card fade-up" data-game-id="mc" data-base-price="190" data-configs='[{"n":"Hypixel Bypass CFG", "p":60}, {"n":"Anarchy PvP CFG", "p":80}, {"n":"Auto-Totem Macro", "p":40}, {"n":"Crystal Aura Pro", "p":90}, {"n":"X-Ray Advanced", "p":30}, {"n":"Anti-Knockback (Velocity)", "p":50}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-cube"></i></div>
@@ -534,11 +644,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">190</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="149" data-configs='[{"n":"Arsenal Aimbot Script", "p":40}, {"n":"Blox Fruits Auto-Farm", "p":60}]'>
+            <div class="card fade-up" data-game-id="rb" data-base-price="149" data-configs='[{"n":"Arsenal Aimbot Script", "p":40}, {"n":"Blox Fruits Auto-Farm", "p":60}, {"n":"Admin Commands Menu", "p":100}, {"n":"Server Crasher Hub", "p":150}, {"n":"Pet Sim X Auto-Hatch", "p":50}, {"n":"Murder Mystery 2 Hub", "p":70}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-gamepad"></i></div>
@@ -556,18 +666,18 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">149</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="249" data-configs='[{"n":"Global Elite CFG", "p":70}, {"n":"HvH (Крутилка) CFG", "p":100}]'>
+            <div class="card fade-up" data-game-id="so2" data-base-price="249" data-configs='[{"n":"Global Elite CFG", "p":70}, {"n":"HvH (Крутилка) CFG", "p":100}, {"n":"Silent Aim Module", "p":90}, {"n":"Fast Defuse & Plant", "p":50}, {"n":"SkinChanger Max", "p":80}, {"n":"Anti-Flash / Smoke", "p":40}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-gun"></i></div>
                         <div class="status">Undetected</div>
                     </div>
                     <div class="game-title">Standoff 2</div>
-                    <div class="game-subtitle">Phoenix Hack (PC)</div>
+                    <div class="game-subtitle">Phoenix Hack (PC/And)</div>
                     <br>
                     <ul class="features-list">
                         <li><i class="fa-solid fa-check"></i> <span data-i18n="f_so1">Жесткий Аимбот (в голову)</span></li>
@@ -578,11 +688,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">249</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="180" data-configs='[{"n":"Auto-Push Rank 30", "p":50}, {"n":"Piper God CFG", "p":40}]'>
+            <div class="card fade-up" data-game-id="bs" data-base-price="180" data-configs='[{"n":"Auto-Push Rank 30", "p":50}, {"n":"Piper God CFG", "p":40}, {"n":"Showdown Teamer Script", "p":60}, {"n":"Auto-Dodge Attacks", "p":80}, {"n":"Gem Grab Carrier Setup", "p":30}, {"n":"Brawl Ball Carry", "p":50}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-star"></i></div>
@@ -600,11 +710,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">180</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="1500" data-configs='[{"n":"Loot Goblin Filter", "p":200}, {"n":"Labs Chad CFG", "p":300}]'>
+            <div class="card fade-up" data-game-id="eft" data-base-price="1500" data-configs='[{"n":"Loot Goblin Filter", "p":200}, {"n":"Labs Chad CFG", "p":300}, {"n":"Quest Items Helper", "p":150}, {"n":"Auto-Flea Market Bot", "p":400}, {"n":"Thermal Vision 2.0", "p":180}, {"n":"Chams / Glow Models", "p":120}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-person-rifle"></i></div>
@@ -622,11 +732,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">1500</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="490" data-configs='[{"n":"Tinker/Meepo Macros", "p":90}, {"n":"Safe Support Maphack", "p":60}]'>
+            <div class="card fade-up" data-game-id="dota2" data-base-price="490" data-configs='[{"n":"Tinker/Meepo Combo", "p":90}, {"n":"Safe Maphack Setup", "p":60}, {"n":"Auto-Dodge / BKB", "p":110}, {"n":"Creep Blocker Bot", "p":70}, {"n":"Illusion Controller", "p":80}, {"n":"Auto-LastHit Module", "p":50}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-dragon"></i></div>
@@ -644,11 +754,11 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">490</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
-            <div class="card fade-up hover-target" data-base-price="300" data-configs='[{"n":"Bypass Admin CFG", "p":80}, {"n":"Troll Session Menu", "p":50}]'>
+            <div class="card fade-up" data-game-id="gta5" data-base-price="300" data-configs='[{"n":"Bypass Admin CFG", "p":80}, {"n":"Troll Session Menu", "p":50}, {"n":"Casino Rig (Money)", "p":150}, {"n":"Recovery Safe Menu", "p":200}, {"n":"Aimbot & ESP for RP", "p":120}, {"n":"Custom Vehicle Spawner", "p":90}]'>
                 <div class="card-inner">
                     <div class="card-header">
                         <div class="card-icon"><i class="fa-solid fa-car"></i></div>
@@ -666,22 +776,24 @@
                 </div>
                 <div class="price-row">
                     <div class="price"><span class="price-val">300</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ Навсегда</span></div>
-                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                    <div class="buy-btn ripple-btn" data-i18n="btn_select">Выбрать</div>
                 </div>
             </div>
 
         </div>
     </section>
 
+    <!-- ИСПРАВЛЕННОЕ МОДАЛЬНОЕ ОКНО -->
     <div class="modal-overlay" id="infoModal">
-        <div class="modal-content hover-target">
+        <div class="modal-content hover-target" id="modal3D">
             <div class="close-btn hover-target" id="closeModal"><i class="fa-solid fa-xmark"></i></div>
             
             <div class="modal-header">
                 <div id="modalStatus" style="margin-bottom: 12px; display: inline-flex;">Статус</div>
                 <div class="modal-title" id="modalTitle">Игра</div>
                 <div class="game-subtitle" id="modalSubtitle" style="margin-top: 5px; font-size: 16px;">Тип софта</div>
-                <div class="modal-desc" data-i18n="modal_desc">Приватная версия ПО с максимальным уровнем оптимизации. Стабильная работа на всех версиях ОС Windows.</div>
+                
+                <div class="modal-desc" id="modalDesc">Приватная версия ПО с максимальным уровнем оптимизации. Стабильная работа на всех версиях ОС Windows.</div>
             </div>
             
             <div class="modal-features">
@@ -696,13 +808,13 @@
             
             <div class="coupon-box">
                 <input type="text" class="hover-target" id="couponInput" data-i18n-placeholder="coupon_placeholder" placeholder="У вас есть промокод?">
-                <div class="coupon-btn hover-target" id="applyCoupon" data-i18n="btn_activate">Активировать</div>
+                <div class="coupon-btn hover-target ripple-btn" id="applyCoupon" data-i18n="btn_activate">Активировать</div>
             </div>
             <div class="coupon-msg" id="couponMsg"></div>
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;">
                 <div style="color: var(--text-muted); font-size: 15px; font-weight: 600;" data-i18n="total_pay">Итого к оплате:</div>
-                <div class="price" id="modalPrice" style="font-size: 32px; color: var(--accent-color);">0 ₽</div>
+                <div class="price" id="modalPrice" style="font-size: 32px; color: var(--accent-color); text-shadow: 0 0 15px var(--accent-glow);">0 ₽</div>
             </div>
 
             <div class="support-box">
@@ -710,10 +822,11 @@
                 <span data-i18n="support_link">Техподдержка 24/7:</span> <a href="https://t.me/X_PROJECT7" target="_blank" class="hover-target">@X_PROJECT7</a>
             </div>
 
-            <a href="https://t.me/X_PROJECT7" target="_blank" class="modal-buy-btn hover-target" data-i18n="btn_buy_final">Оплатить и получить доступ</a>
+            <a href="https://t.me/X_PROJECT7" target="_blank" class="modal-buy-btn hover-target ripple-btn" data-i18n="btn_buy_final">Оплатить и получить доступ</a>
         </div>
     </div>
 
+    <!-- ОКНО ЛАУНЧЕРА -->
     <div class="modal-overlay" id="launcherModal">
         <div class="modal-content hover-target" style="text-align: center; max-width: 480px;">
             <div class="close-btn hover-target" id="closeLauncherModal"><i class="fa-solid fa-xmark"></i></div>
@@ -729,7 +842,7 @@
             
             <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 15px;" data-i18n="launcher_modal_desc">Для получения актуальной версии лоадера и ключа доступа, обратитесь к менеджеру.</p>
             
-            <a href="https://t.me/X_PROJECT7" target="_blank" class="modal-buy-btn hover-target" style="display: inline-block; width: auto; padding: 16px 40px;" data-i18n="btn_launcher_dl">Написать в Telegram</a>
+            <a href="https://t.me/X_PROJECT7" target="_blank" class="modal-buy-btn hover-target ripple-btn" style="display: inline-block; width: auto; padding: 16px 40px;" data-i18n="btn_launcher_dl">Написать в Telegram</a>
         </div>
     </div>
 
@@ -743,7 +856,38 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- 0. ДИНАМИЧЕСКИЙ ЗАГОЛОВОК ВКЛАДКИ ---
+            // --- 0. ПРЕЛОАДЕР И ИМИТАЦИЯ ТЕРМИНАЛА ---
+            const preloader = document.getElementById('preloader');
+            const termContent = document.getElementById('term-content');
+            const bootSequence = [
+                "> INITIALIZING X-PROJECT ENGINE v4.5.9...",
+                "> BYPASSING KERNEL SECURITY [RING-0]...",
+                "> INJECTING MODULES [OK]",
+                "> ESTABLISHING SECURE CONNECTION...",
+                "> SYNCING DATA CONFIGS...",
+                "> ACCESS GRANTED."
+            ];
+            
+            let lineIndex = 0;
+            function typeLine() {
+                if (lineIndex < bootSequence.length) {
+                    const p = document.createElement('p');
+                    p.className = 'term-line';
+                    p.innerText = bootSequence[lineIndex];
+                    termContent.appendChild(p);
+                    setTimeout(() => p.style.opacity = '1', 50);
+                    lineIndex++;
+                    setTimeout(typeLine, Math.random() * 200 + 100);
+                } else {
+                    setTimeout(() => {
+                        preloader.style.pointerEvents = 'none'; // Мгновенно убираем преграду для кликов
+                        preloader.style.opacity = '0';
+                        setTimeout(() => preloader.style.visibility = 'hidden', 800);
+                    }, 600);
+                }
+            }
+            setTimeout(typeLine, 300);
+
             let originalTitle = document.title;
             window.addEventListener("blur", () => { document.title = "🔥 Ждем тебя обратно!"; });
             window.addEventListener("focus", () => { document.title = originalTitle; });
@@ -755,47 +899,70 @@
             window.addEventListener('mousemove', (e) => {
                 const posX = e.clientX; const posY = e.clientY;
                 cursorDot.style.left = `${posX}px`; cursorDot.style.top = `${posY}px`;
-                cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 150, fill: "forwards" });
+                cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 100, fill: "forwards" });
             });
 
+            window.addEventListener('mousedown', () => cursorOutline.classList.add('clicking'));
+            window.addEventListener('mouseup', () => cursorOutline.classList.remove('clicking'));
+
             const refreshCursorTriggers = () => {
-                document.querySelectorAll('.hover-target, a, .card, .menu-item, select, input, .coupon-btn, .buy-btn, .close-btn, .theme-btn').forEach(target => {
+                document.querySelectorAll('.hover-target, a, button, .card, .menu-item, select, input, .coupon-btn, .buy-btn, .close-btn, .theme-btn').forEach(target => {
                     target.addEventListener('mouseenter', () => cursorOutline.classList.add('hovering'));
                     target.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovering'));
                 });
             };
             refreshCursorTriggers();
 
-            // --- 2. ИНТЕРАКТИВНЫЙ ФОН (ЧАСТИЦЫ) ---
+            // --- 1.5 ЭФФЕКТ RIPPLE ДЛЯ КНОПОК ---
+            function createRipple(event) {
+                const button = event.currentTarget;
+                const circle = document.createElement("span");
+                const diameter = Math.max(button.clientWidth, button.clientHeight);
+                const radius = diameter / 2;
+                const rect = button.getBoundingClientRect();
+                circle.style.width = circle.style.height = `${diameter}px`;
+                circle.style.left = `${event.clientX - rect.left - radius}px`;
+                circle.style.top = `${event.clientY - rect.top - radius}px`;
+                circle.classList.add("ripple");
+                const existingRipple = button.querySelector('.ripple');
+                if (existingRipple) { existingRipple.remove(); }
+                button.appendChild(circle);
+                setTimeout(() => { circle.remove(); }, 600);
+            }
+            const rippleBtns = document.querySelectorAll('.ripple-btn');
+            rippleBtns.forEach(btn => btn.addEventListener('click', createRipple));
+
+            // --- 2. ИНТЕРАКТИВНЫЙ ФОН (ЧАСТИЦЫ) + ВЗРЫВ ПО КЛИКУ ---
             const canvas = document.getElementById('particles-canvas'); const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             let particlesArray = []; let mouse = { x: null, y: null, radius: 150 };
+            
             window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
             window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
 
             class Particle {
-                constructor(x, y, directionX, directionY, size) { this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; }
-                draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = document.body.getAttribute('data-theme') === 'light' ? '#2563eb' : '#3b82f6'; ctx.fill(); }
+                constructor(x, y, directionX, directionY, size) { this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.life = 100; }
+                draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = document.body.getAttribute('data-theme') === 'light' ? `rgba(37,99,235,${this.life/100})` : `rgba(59,130,246,${this.life/100})`; ctx.fill(); }
                 update() {
                     if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
                     if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
                     let dx = mouse.x - this.x; let dy = mouse.y - this.y; let distance = Math.sqrt(dx*dx + dy*dy);
                     if (distance < mouse.radius) {
-                        if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 2;
-                        if (mouse.x > this.x && this.x > this.size * 10) this.x -= 2;
-                        if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 2;
-                        if (mouse.y > this.y && this.y > this.size * 10) this.y -= 2;
+                        if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 3;
+                        if (mouse.x > this.x && this.x > this.size * 10) this.x -= 3;
+                        if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 3;
+                        if (mouse.y > this.y && this.y > this.size * 10) this.y -= 3;
                     }
                     this.x += this.directionX; this.y += this.directionY; this.draw();
                 }
             }
             function initParticles() {
-                particlesArray = []; let numberOfParticles = (canvas.height * canvas.width) / 15000;
+                particlesArray = []; let numberOfParticles = (canvas.height * canvas.width) / 12000;
                 for (let i = 0; i < numberOfParticles; i++) {
-                    let size = (Math.random() * 2) + 1;
+                    let size = (Math.random() * 2.5) + 1;
                     let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
                     let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-                    particlesArray.push(new Particle(x, y, (Math.random() * 1) - 0.5, (Math.random() * 1) - 0.5, size));
+                    particlesArray.push(new Particle(x, y, (Math.random() * 1.5) - 0.75, (Math.random() * 1.5) - 0.75, size));
                 }
             }
             function connectParticles() {
@@ -803,26 +970,35 @@
                     for(let b=a; b<particlesArray.length; b++){
                         let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
                         if(distance < (canvas.width/7) * (canvas.height/7)){
-                            ctx.strokeStyle = document.body.getAttribute('data-theme') === 'light' ? 'rgba(37,99,235,0.05)' : 'rgba(59,130,246,0.1)';
+                            ctx.strokeStyle = document.body.getAttribute('data-theme') === 'light' ? 'rgba(37,99,235,0.08)' : 'rgba(59,130,246,0.15)';
                             ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke();
                         }
                     }
                 }
             }
             function animateParticles() { requestAnimationFrame(animateParticles); ctx.clearRect(0, 0, innerWidth, innerHeight); for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); } connectParticles(); }
+            
             initParticles(); animateParticles();
+
+            window.addEventListener('click', (e) => {
+                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.card') || e.target.closest('.modal-content') || e.target.closest('input')) return;
+                for(let i=0; i<25; i++) {
+                    particlesArray.push(new Particle(e.clientX, e.clientY, (Math.random()*12)-6, (Math.random()*12)-6, Math.random()*4+1));
+                }
+                if(particlesArray.length > 250) particlesArray.splice(0, 25);
+            });
 
             // --- 3. TOAST УВЕДОМЛЕНИЯ ---
             const toastContainer = document.getElementById('toast-container');
-            const gameNames = ["PUBG Mobile", "CoD: Mobile", "CS2 Aura", "Rust Spoofer", "Valorant Pixel", "Fortnite", "Minecraft CFG", "Brawl Stars"];
-            const users = ["Anon***", "User82*", "Sniper**", "God***", "ProPlayer", "Keks_33", "Hack**"];
+            const gameNames = ["PUBG Mobile", "CoD: Mobile", "CS2 Aura", "Rust Spoofer", "Valorant Pixel", "Fortnite", "Minecraft CFG", "Brawl Stars", "Escape From Tarkov", "GTA V Mod"];
+            const users = ["Anon***", "User82*", "Sniper**", "God***", "ProPlayer", "Keks_33", "Hack**", "TryHard*", "Elite**"];
             function showToast() {
                 const game = gameNames[Math.floor(Math.random() * gameNames.length)]; const user = users[Math.floor(Math.random() * users.length)];
                 const toast = document.createElement('div'); toast.className = 'toast';
                 toast.innerHTML = `<div class="toast-icon"><i class="fa-solid fa-basket-shopping"></i></div><div class="toast-content"><span class="toast-title">Новая покупка</span><span class="toast-desc">${user} купил ${game}</span></div>`;
                 toastContainer.appendChild(toast); setTimeout(() => { toast.remove(); }, 5000);
             }
-            (function loopToast() { setTimeout(() => { showToast(); loopToast(); }, Math.random() * 10000 + 5000); })();
+            (function loopToast() { setTimeout(() => { showToast(); loopToast(); }, Math.random() * 12000 + 4000); })();
 
             // --- 4. КОНТЕКСТНОЕ МЕНЮ ---
             const customMenu = document.getElementById('custom-menu');
@@ -836,9 +1012,9 @@
 
             // --- 5. ГЕНЕРАЦИЯ TICKER'А ---
             const tickerContent = document.getElementById('tickerContent');
-            const gamesList = ["PUBG Mobile", "CoD: Mobile", "Free Fire", "Genshin Impact", "Arena Breakout", "CS2", "Rust", "Valorant", "Fortnite", "Minecraft", "Roblox"];
+            const gamesList = ["PUBG Mobile", "CoD: Mobile", "Free Fire", "Genshin Impact", "Arena Breakout", "CS2", "Rust", "Valorant", "Fortnite", "Minecraft", "Roblox", "Standoff 2", "Brawl Stars", "Escape From Tarkov", "Dota 2", "GTA V"];
             let tickerHTML = "";
-            for(let i=0; i<15; i++) {
+            for(let i=0; i<20; i++) {
                 const id = Math.floor(Math.random() * 9000) + 1000; const g = gamesList[Math.floor(Math.random() * gamesList.length)];
                 tickerHTML += `<div class="ticker-item"><i class="fa-solid fa-circle-check"></i> <span class="user">User${id}</span> приобрел доступ к <span class="game">${g}</span></div>`;
             }
@@ -851,23 +1027,47 @@
                 themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
             });
 
-            // --- 7. 3D АНИМАЦИЯ КАРТОЧЕК ---
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                card.addEventListener('mousemove', (e) => {
-                    if (window.innerWidth < 768) return; 
-                    const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top;
-                    const rotateX = ((y - (rect.height / 2)) / (rect.height / 2)) * -12; const rotateY = ((x - (rect.width / 2)) / (rect.width / 2)) * 12;
-                    card.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03, 1.03, 1.03)`; card.style.transition = 'none';
+            // --- 7. ПОИСК ИГР ---
+            const searchInput = document.getElementById('gameSearch');
+            const allCards = document.querySelectorAll('.card');
+            searchInput.addEventListener('input', function() {
+                const filter = this.value.toLowerCase();
+                allCards.forEach(card => {
+                    const title = card.querySelector('.game-title').innerText.toLowerCase();
+                    const subtitle = card.querySelector('.game-subtitle').innerText.toLowerCase();
+                    if(title.includes(filter) || subtitle.includes(filter)) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
                 });
-                card.addEventListener('mouseleave', () => { card.style.transform = `perspective(1500px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`; card.style.transition = 'transform 0.5s ease, box-shadow 0.4s, border-color 0.4s'; });
             });
 
-            // --- 8. АНИМАЦИЯ ПРИ СКРОЛЛЕ ---
+            // --- 8. 3D АНИМАЦИЯ И ОСВЕЩЕНИЕ КАРТОЧЕК ---
+            allCards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect(); 
+                    const x = e.clientX - rect.left; 
+                    const y = e.clientY - rect.top;
+                    
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+
+                    if (window.innerWidth < 768) return; 
+                    const rotateX = ((y - (rect.height / 2)) / (rect.height / 2)) * -15; 
+                    const rotateY = ((x - (rect.width / 2)) / (rect.width / 2)) * 15;
+                    card.style.transform = `perspective(2000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`; 
+                });
+                card.addEventListener('mouseleave', () => { 
+                    card.style.transform = `perspective(2000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`; 
+                });
+            });
+
+            // --- 9. АНИМАЦИЯ ПРИ СКРОЛЛЕ ---
             const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('visible'); }); }, { threshold: 0.1 });
             document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
-            // --- 9. МУЛЬТИВАЛЮТНОСТЬ И МУЛЬТИЯЗЫЧНОСТЬ ---
+            // --- 10. МУЛЬТИВАЛЮТНОСТЬ, СЛОВАРЬ И ОПИСАНИЯ ЧИТОВ ---
             const currencySelector = document.getElementById('currencySelector'); const langSelector = document.getElementById('langSelector');
             const rates = { RUB: 1, USD: 0.011, EUR: 0.01 }; const symbols = { RUB: '₽', USD: '$', EUR: '€' };
             let currentCurrency = 'RUB'; let currentLang = 'ru';
@@ -878,15 +1078,34 @@
                     desc: "Премиум алгоритмы и обход современных античитов. Мы обеспечиваем максимальную безопасность и стабильность.",
                     stat1: "Активных юзеров", stat2: "Поддерживаемых игр", stat3: "Поддержка онлайн",
                     catalog_title: "Наш Каталог", per_month: "/ 30 дней", btn_select: "Выбрать",
-                    modal_desc: "Приватная версия ПО с максимальным уровнем оптимизации. Стабильная работа на всех версиях ОС Windows.",
                     modal_feat_title: "Включенные функции:", modal_cfg_title: "Дополнительные конфиги", modal_cfg_rec: "Рекомендуем",
-                    coupon_placeholder: "У вас есть промокод?", btn_activate: "Активировать", total_pay: "Итого к оплате:",
+                    search_placeholder: "Поиск по играм...", coupon_placeholder: "У вас есть промокод?", btn_activate: "Активировать", total_pay: "Итого к оплате:",
                     support_text: "Поможем с установкой и всё настроим.", support_link: "Техподдержка 24/7:", btn_buy_final: "Оплатить и получить доступ",
                     footer_copy: "Продукты предоставлены для ознакомления.", footer_contact: "Связь с администрацией:",
                     btn_launcher_main: "Скачать лаунчер", launcher_modal_title: "Установка лаунчера",
                     launcher_warn_title: "Ложное срабатывание (False Positive):",
                     launcher_warn_desc: "Из-за специфики работы алгоритмов обхода (инжект в память), встроенные системы защиты Windows и браузера могут реагировать на файл. Для успешного запуска может потребоваться добавить лаунчер в исключения.",
                     launcher_modal_desc: "Для получения актуальной версии лоадера и ключа доступа, обратитесь к менеджеру.", btn_launcher_dl: "Написать в Telegram",
+                    
+                    // Описания читов
+                    desc_pubg: "Полный обход эмулятора (Tencent Gaming Buddy / Gameloop) и мобильной защиты. Включает продвинутый радар, точный аимбот с контролем отдачи и цветное отображение лута. 100% защита от банов на 10 лет благодаря кольцевому инжекту (Ring-0).",
+                    desc_codm: "Оптимизированный софт для мультиплеера и королевской битвы. Поддерживает эмуляторы и мобильные устройства (через Root). Полный набор визуальных функций и плавный сайлент-аим для турнирной игры.",
+                    desc_ff: "Скрипт-макрос нового поколения для Garena Free Fire. Идеальная доводка в голову при прицеливании. Не требует внедрения в память игры, работает поверх экрана, что обеспечивает максимальную скрытность.",
+                    desc_gi: "Мультихак для быстрой прокачки и фарма в Genshin Impact. Отключение кулдаунов скиллов, режим бога, авто-сбор всех окулов и сундуков на карте за считанные минуты без риска бана.",
+                    desc_ab: "Приватный софт с детальной настройкой лут-фильтра. Показывает стоимость предметов в реальном времени. Встроенный радар для отслеживания ЧВК и диких на любой дистанции.",
+                    desc_cs2: "External чит для Counter-Strike 2. Работает без внедрения в память (Read-Only), что делает его абсолютно невидимым для VAC Live. Идеально для поднятия ELO на Faceit и Premier матчмейкинге.",
+                    desc_rust: "Хардкорный мультихак для Rust с функцией глубокого обхода EAC. Встроенный HWID Spoofer, дебаг-камера, авто-отстрел с любых видов оружия (идеальные спреи) и подсветка зарытых тайников.",
+                    desc_val: "Пиксельный триггербот и аим-ассист для Valorant. Никак не взаимодействует с памятью игры (0% Memory Write), анализирует исключительно пиксели на экране. Стабильно обходит Riot Vanguard.",
+                    desc_fn: "Многофункциональный чит для Fortnite. Поддержка всех режимов (Арена, Паблик, Турниры). Точный предикшен для снайперских винтовок и детальное отображение всего лута по категориям и редкости.",
+                    desc_mc: "Приватный клиент (Ghost Client) для серверов Minecraft (Hypixel, 2b2t, Sunrise). Моментальный обход всех популярных серверных античитов (Matrix, Vulcan, AAC, Grim). Полностью настраиваемая KillAura.",
+                    desc_rb: "Мощный Executor для Roblox уровня Synapse с поддержкой 99% Lua-скриптов. Включает встроенный хаб с авто-фармом для Blox Fruits, Arsenal, Da Hood. Полный обход античита Byfron/Hyperion.",
+                    desc_so2: "Чит для Standoff 2 (Android / PC Emulator). Включает рабочий Skinchanger на все ножи и перчатки (виден всем), точный AimBot и WallHack. Обходит баны по железу и устройству.",
+                    desc_bs: "Мод-меню для Brawl Stars. Автоматическое уклонение от атак противников, предикшен выстрелов, отображение невидимых персонажей в кустах и мгновенная авто-ульта.",
+                    desc_eft: "Элитный DMA-чит для Escape From Tarkov. Включает умный радар (работает на втором ПК), фильтрацию лута по цене на барахолке, отображение выходов и боссов. Максимальная безопасность.",
+                    desc_dota2: "Платформа скриптов для Dota 2. Включает MapHack, авто-додж скиллов (Manta, BKB, Eul), идеальные макро-комбо для Invoker, Tinker, Meepo и отображение скрытых кулдаунов врагов.",
+                    desc_gta5: "Универсальное Mod Menu для GTA Online и серверов FiveM (RP). Моментальная накрутка денег, RP, разблокировка всего транспорта, режим разработчика и мощная защита от крашей других читеров.",
+
+                    // Особенности
                     f_pubg1: "Умный Аибот (360 Доводка)", f_pubg2: "Цветной ESP скелет врагов", f_pubg3: "Антиотдача (No Recoil 100%)", f_pubg4: "Обход эмулятора / Защиты",
                     f_codm1: "Плавный Silent Aimbot", f_codm2: "Wallhack и радар на карте", f_codm3: "Быстрая перезарядка оружия", f_codm4: "Анти-бан система логов",
                     f_ff1: "100% Автошот при прицеле", f_ff2: "ESP Линии до игроков", f_ff3: "Увеличенная скорострельность", f_ff4: "Полностью скрытый софт",
@@ -902,23 +1121,41 @@
                     f_bs1: "Авто-наведение ульты и атак", f_bs2: "Показ врагов в кустах (ВХ)", f_bs3: "Калькулятор траектории", f_bs4: "Безопасно для основы",
                     f_eft1: "Умный фильтр цен на лут", f_eft2: "Чамсы на игроков и ботов", f_eft3: "Бесконечная стамина", f_eft4: "Максимальная скрытность",
                     f_dota1: "Видимость телепортов / вардов", f_dota2: "Авто-хекс и уклонения", f_dota3: "Скрипты на 120+ героев", f_dota4: "Отдаление камеры (Zoom)",
-                    f_gta1: "Накрутка денег и RP", f_gta2: "Краш игроков в сессии", f_gta3: "God Mode & Телепорт", f_gta4: "Обход серверных защит",
-                    f_dl1: "Авто-LastHit (Добивание)", f_dl2: "ESP на героев и лес", f_dl3: "Aimbot для трекинга", f_dl4: "Безопасно для аккаунта"
+                    f_gta1: "Накрутка денег и RP", f_gta2: "Краш игроков в сессии", f_gta3: "God Mode & Телепорт", f_gta4: "Обход серверных защит"
                 },
                 en: {
                     h1: "Innovative Software for<br><span class='highlight'>domination</span>",
                     desc: "Premium algorithms and modern anti-cheat bypass. We provide maximum security and stability.",
                     stat1: "Active Users", stat2: "Supported Games", stat3: "Online Support",
                     catalog_title: "Our Catalog", per_month: "/ 30 days", btn_select: "Select",
-                    modal_desc: "Private software version with maximum optimization. Stable operation on all Windows OS versions.",
                     modal_feat_title: "Included features:", modal_cfg_title: "Additional Configs", modal_cfg_rec: "Recommended",
-                    coupon_placeholder: "Have a promo code?", btn_activate: "Activate", total_pay: "Total to pay:",
+                    search_placeholder: "Search games...", coupon_placeholder: "Have a promo code?", btn_activate: "Activate", total_pay: "Total to pay:",
                     support_text: "We will help with installation and setup.", support_link: "Support 24/7:", btn_buy_final: "Pay and Get Access",
                     footer_copy: "Products are provided for educational purposes.", footer_contact: "Contact administration:",
                     btn_launcher_main: "Download Launcher", launcher_modal_title: "Loader Installation",
                     launcher_warn_title: "False Positive Warning:",
                     launcher_warn_desc: "Due to the nature of bypass algorithms (memory injection), Windows and browser security systems may flag the file. You may need to add the launcher to your exclusions for it to run successfully.",
                     launcher_modal_desc: "To get the latest loader version and access key, please contact us on Telegram.", btn_launcher_dl: "Message in Telegram",
+                    
+                    // Descriptions
+                    desc_pubg: "Full bypass for emulators (Gameloop) and mobile anti-cheats. Includes advanced radar, precise aimbot with recoil control, and colored loot ESP. 100% ban protection for 10 years thanks to Ring-0 injection.",
+                    desc_codm: "Optimized software for multiplayer and battle royale. Supports emulators and mobile devices (via Root). Full set of visual features and smooth silent aim for tournament play.",
+                    desc_ff: "Next-generation macro script for Garena Free Fire. Perfect head auto-lock when aiming. Does not require memory injection, works as an overlay ensuring maximum stealth.",
+                    desc_gi: "Multihack for fast leveling and farming in Genshin Impact. Skill cooldown removal, god mode, auto-collect all oculi and chests on the map in minutes without ban risk.",
+                    desc_ab: "Private software with detailed loot filter settings. Shows item values in real-time. Built-in radar to track PMC and Scavs at any distance.",
+                    desc_cs2: "External cheat for Counter-Strike 2. Works without memory injection (Read-Only), making it absolutely invisible to VAC Live. Perfect for boosting ELO on Faceit and Premier matchmaking.",
+                    desc_rust: "Hardcore multihack for Rust with deep EAC bypass. Built-in HWID Spoofer, debug camera, auto-fire for all weapons (perfect sprays), and buried stash highlight.",
+                    desc_val: "Pixel triggerbot and aim-assist for Valorant. Does not interact with game memory (0% Memory Write), analyzes screen pixels only. Consistently bypasses Riot Vanguard.",
+                    desc_fn: "Multifunctional cheat for Fortnite. Supports all modes (Arena, Public, Tournaments). Accurate sniper prediction and detailed display of all loot by category and rarity.",
+                    desc_mc: "Private Ghost Client for Minecraft servers (Hypixel, 2b2t). Instant bypass for all popular server anti-cheats (Matrix, Vulcan, AAC, Grim). Fully customizable KillAura.",
+                    desc_rb: "Powerful Synapse-level Executor for Roblox supporting 99% of Lua scripts. Includes built-in hub with auto-farm for Blox Fruits, Arsenal, Da Hood. Full Byfron/Hyperion anti-cheat bypass.",
+                    desc_so2: "Cheat for Standoff 2 (Android / PC Emulator). Includes working Skinchanger for all knives and gloves (visible to all), precise AimBot, and WallHack. Bypasses hardware/device bans.",
+                    desc_bs: "Mod menu for Brawl Stars. Automatic attack dodging, shot prediction, displaying invisible characters in bushes, and instant auto-ultimate.",
+                    desc_eft: "Elite DMA cheat for Escape From Tarkov. Includes smart radar (runs on a 2nd PC), flea market price loot filtering, extract and boss ESP. Maximum security.",
+                    desc_dota2: "Script platform for Dota 2. Includes MapHack, auto-dodge skills (Manta, BKB, Eul), perfect macro combos for Invoker, Tinker, Meepo, and enemy hidden cooldown display.",
+                    desc_gta5: "Universal Mod Menu for GTA Online and FiveM (RP) servers. Instant money drop, RP, all vehicle unlock, developer mode, and powerful protection against other modder crashes.",
+
+                    // Features
                     f_pubg1: "Smart Aimbot (360 Lock)", f_pubg2: "Colored ESP Skeleton", f_pubg3: "No Recoil (100% stable)", f_pubg4: "Emulator Bypass Safe",
                     f_codm1: "Smooth Silent Aimbot", f_codm2: "Wallhack & Radar Active", f_codm3: "Fast Weapon Reload", f_codm4: "Anti-Ban Logs Cleaner",
                     f_ff1: "100% Auto-Headshot Close", f_ff2: "ESP Lines To Enemy", f_ff3: "Increased Fire Rate", f_ff4: "Completely Hidden Soft",
@@ -934,14 +1171,13 @@
                     f_bs1: "Auto-Aim Ultimates/Attacks", f_bs2: "Bush ESP (See Enemies)", f_bs3: "Trajectory Calculator", f_bs4: "Safe for Main Account",
                     f_eft1: "Smart Price Loot Filter", f_eft2: "Player and Bot Chams", f_eft3: "Infinite Stamina Max", f_eft4: "Maximum Stealth Bypass",
                     f_dota1: "Maphack (Fog of War)", f_dota2: "Auto-Hex and Dodges", f_dota3: "120+ Heroes Script Engine", f_dota4: "Camera Unlock (Zoom)",
-                    f_gta1: "Money & RP Generator", f_gta2: "Crash Players in Session", f_gta3: "God Mode & Teleport", f_gta4: "Server Anti-Cheat Bypass",
-                    f_dl1: "Auto-LastHit Deny Minions", f_dl2: "Hero and Jungle ESP", f_dl3: "Tracking Precise Aimbot", f_dl4: "Account Ban Protection"
+                    f_gta1: "Money & RP Generator", f_gta2: "Crash Players in Session", f_gta3: "God Mode & Teleport", f_gta4: "Server Anti-Cheat Bypass"
                 }
             };
 
             function updatePricesOnPage() {
                 const multiplier = rates[currentCurrency]; const symbol = symbols[currentCurrency];
-                cards.forEach(card => {
+                allCards.forEach(card => {
                     const basePrice = parseInt(card.getAttribute('data-base-price'));
                     card.querySelector('.price-val').innerText = Math.ceil(basePrice * multiplier);
                     card.querySelector('.price-sym').innerText = symbol;
@@ -959,21 +1195,42 @@
                 document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                     if (dictionary[currentLang][el.getAttribute('data-i18n-placeholder')]) el.placeholder = dictionary[currentLang][el.getAttribute('data-i18n-placeholder')];
                 });
+                // Обновляем описание в открытой модалке
+                if(modal.classList.contains('active') && activeCard) {
+                    const gameId = activeCard.getAttribute('data-game-id');
+                    document.getElementById('modalDesc').innerText = dictionary[currentLang]["desc_" + gameId];
+                }
             }
 
             currencySelector.addEventListener('change', (e) => { currentCurrency = e.target.value; updatePricesOnPage(); });
             langSelector.addEventListener('change', (e) => { currentLang = e.target.value; updateLanguage(); });
 
-            // --- 10. МОДАЛЬНЫЕ ОКНА И КОНФИГИ ---
+            // --- 11. ИСПРАВЛЕННЫЕ МОДАЛЬНЫЕ ОКНА И КОНФИГИ ---
             const modal = document.getElementById('infoModal'); const closeBtn = document.getElementById('closeModal');
             const launcherModal = document.getElementById('launcherModal'); const openLauncherBtn = document.getElementById('openLauncherBtn'); const closeLauncherModal = document.getElementById('closeLauncherModal');
             const couponInput = document.getElementById('couponInput'); const applyCouponBtn = document.getElementById('applyCoupon');
             const couponMsg = document.getElementById('couponMsg'); const modalPrice = document.getElementById('modalPrice');
             const configsSection = document.getElementById('modalConfigsSection'); const configList = document.getElementById('modalConfigList');
+            const modal3D = document.getElementById('modal3D');
+            const modalDesc = document.getElementById('modalDesc');
             
             let activeBasePriceRUB = 0; let configTotalPriceRUB = 0; let isFreeCouponActive = false; let activeCard = null;
 
-            // Логика Лаунчера
+            // БЕЗОПАСНОЕ 3D Вращение модального окна мышью (Исключает баг срезания)
+            document.addEventListener('mousemove', (e) => {
+                if (modal.classList.contains('active') && window.innerWidth > 768) {
+                    let xAxis = (window.innerWidth / 2 - e.pageX) / 80;
+                    let yAxis = (window.innerHeight / 2 - e.pageY) / 80;
+                    
+                    // Ограничитель угла наклона, чтобы окно не улетало в космос
+                    xAxis = Math.max(-10, Math.min(10, xAxis));
+                    yAxis = Math.max(-10, Math.min(10, yAxis));
+
+                    modal3D.style.setProperty('--rotate-y', `${xAxis}deg`);
+                    modal3D.style.setProperty('--rotate-x', `${yAxis}deg`);
+                }
+            });
+
             openLauncherBtn.addEventListener('click', () => { launcherModal.classList.add('active'); });
             closeLauncherModal.addEventListener('click', () => { launcherModal.classList.remove('active'); });
             launcherModal.addEventListener('click', (e) => { if (e.target === launcherModal) launcherModal.classList.remove('active'); });
@@ -994,8 +1251,12 @@
 
                 if (configs && configs.length > 0) {
                     configsSection.style.display = "block";
-                    configs.forEach(cfg => {
+                    configs.forEach((cfg, index) => {
                         const cfgDiv = document.createElement('div'); cfgDiv.className = 'config-item hover-target';
+                        
+                        cfgDiv.style.animation = `fadeUp 0.4s ease forwards ${index * 0.1}s`;
+                        cfgDiv.style.opacity = '0'; 
+                        
                         cfgDiv.innerHTML = `
                             <div class="config-info"><div class="config-name">${cfg.n}</div><div class="config-price-tag">+${Math.ceil(cfg.p * multiplier)}${symbol}</div></div>
                             <div class="config-checkbox"></div>
@@ -1007,13 +1268,20 @@
                         });
                         configList.appendChild(cfgDiv);
                     });
+                    
+                    if (!document.getElementById('dynamic-kf')) {
+                        const style = document.createElement('style'); style.id = 'dynamic-kf';
+                        style.innerHTML = `@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`;
+                        document.head.appendChild(style);
+                    }
+                    
                     refreshCursorTriggers();
                 } else { configsSection.style.display = "none"; }
             }
 
-            cards.forEach(card => {
+            allCards.forEach(card => {
                 card.addEventListener('click', function(event) {
-                    if(event.target.classList.contains('buy-btn')) return;
+                    if(event.target.closest('.buy-btn')) return;
                     activeCard = this; couponInput.value = ""; couponMsg.style.display = "none"; isFreeCouponActive = false;
                     
                     activeBasePriceRUB = parseInt(this.getAttribute('data-base-price'));
@@ -1023,8 +1291,15 @@
                     document.querySelector('.modal-header .status').id = 'modalStatus';
                     document.getElementById('modalFeatures').innerHTML = this.querySelector('.features-list').innerHTML;
                     
+                    // Подгружаем описание из словаря по ID игры
+                    const gameId = this.getAttribute('data-game-id');
+                    modalDesc.innerText = dictionary[currentLang]["desc_" + gameId];
+                    
                     renderConfigs(JSON.parse(this.getAttribute('data-configs') || '[]'));
                     updateModalPriceDisplay(); modal.classList.add('active');
+                    
+                    modal3D.style.setProperty('--rotate-y', `0deg`);
+                    modal3D.style.setProperty('--rotate-x', `0deg`);
                 });
                 
                 const buyBtn = card.querySelector('.buy-btn');
@@ -1042,8 +1317,8 @@
                 couponMsg.style.display = 'block'; updateModalPriceDisplay();
             });
 
-            closeBtn.addEventListener('click', () => modal.classList.remove('active'));
-            modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+            closeBtn.addEventListener('click', () => { modal.classList.remove('active'); });
+            modal.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.remove('active'); }});
             
             updateLanguage();
         });
