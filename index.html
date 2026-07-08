@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-PROJECT // Приватное ПО</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS ПЕРЕМЕННЫЕ --- */
+        :root {
+            --bg-main: #050505;
+            --bg-card: #0a0a0c;
+            --bg-card-hover: #121215;
+            --border-color: #1f1f22;
+            --text-main: #ffffff;
+            --text-muted: #8a8a93;
+            --accent-color: #3b82f6; 
+            --accent-glow: rgba(59, 130, 246, 0.6);
+            --status-green: #10b981;
+            --status-green-bg: rgba(16, 185, 129, 0.15);
+            --discount-color: #22c55e;
+            --glass-bg: rgba(5, 5, 5, 0.7);
+            --input-bg: #000000;
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f0f0f3;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f9f9fb;
+            --border-color: #d1d1d6;
+            --text-main: #111111;
+            --text-muted: #666666;
+            --accent-color: #2563eb; 
+            --accent-glow: rgba(37, 99, 235, 0.4);
+            --glass-bg: rgba(240, 240, 243, 0.8);
+            --input-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; cursor: none !important; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); line-height: 1.5;
+            overflow-x: hidden; transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* --- КАСТОМНЫЙ КУРСОР --- */
+        .cursor-dot { width: 6px; height: 6px; background: var(--accent-color); position: fixed; border-radius: 50%; pointer-events: none; z-index: 9999999; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s; box-shadow: 0 0 10px var(--accent-glow); }
+        .cursor-outline { width: 30px; height: 30px; border: 2px solid var(--accent-color); position: fixed; border-radius: 50%; pointer-events: none; z-index: 9999998; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background 0.2s; box-sizing: border-box; }
+        .cursor-outline.hovering { width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-color: transparent; }
+
+        /* --- ФОН С ЧАСТИЦАМИ --- */
+        #particles-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; }
+        .bg-glow { position: fixed; top: -20%; left: 30%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 60%); z-index: -3; pointer-events: none; }
+
+        /* --- НАВИГАЦИЯ --- */
+        nav {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 5%;
+            background: var(--glass-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color);
+            position: fixed; width: 100%; top: 0; z-index: 100; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+        .logo-icon { color: var(--accent-color); font-size: 28px; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .logo:hover .logo-icon { transform: rotate(180deg); }
+
+        .controls { display: flex; align-items: center; gap: 15px; }
+        .controls select, .theme-btn {
+            background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main);
+            padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600; outline: none; transition: 0.3s;
+        }
+        .controls select:hover, .theme-btn:hover { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-2px); }
+        .theme-btn { width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; font-size: 16px; }
+
+        /* --- ГЛАВНЫЙ ЭКРАН --- */
+        header { margin-top: 80px; padding: 100px 5% 40px; text-align: center; position: relative; }
+        header h1 { font-size: 60px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 24px; line-height: 1.1; position: relative; display: inline-block; }
+        header h1 .highlight {
+            background: linear-gradient(270deg, #60a5fa, #3b82f6, #8b5cf6, #3b82f6);
+            background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: gradientMove 5s ease infinite;
+        }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        header h1:hover { animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite; color: var(--accent-color); }
+        @keyframes glitch { 0% { transform: translate(0) } 20% { transform: translate(-2px, 2px) } 40% { transform: translate(-2px, -2px) } 60% { transform: translate(2px, 2px) } 80% { transform: translate(2px, -2px) } 100% { transform: translate(0) } }
+        header p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; transition: color 0.4s; }
+
+        .launcher-btn-wrap { margin-top: 35px; }
+        .launcher-btn {
+            background: rgba(59, 130, 246, 0.1); border: 2px solid var(--accent-color); color: var(--text-main);
+            padding: 16px 40px; font-size: 18px; font-weight: 800; border-radius: 12px; text-transform: uppercase;
+            letter-spacing: 1px; transition: all 0.3s; box-shadow: 0 0 25px rgba(59, 130, 246, 0.3); outline: none;
+        }
+        .launcher-btn:hover { background: var(--accent-color); color: #fff; transform: scale(1.05); box-shadow: 0 0 40px rgba(59, 130, 246, 0.7); }
+        .launcher-btn i { margin-right: 8px; }
+
+        /* --- СТАТИСТИКА --- */
+        .stats-container { display: flex; justify-content: center; gap: 50px; margin: 50px auto 40px; max-width: 800px; flex-wrap: wrap; }
+        .stat-box { text-align: center; transition: 0.3s; padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid transparent; }
+        .stat-box:hover { transform: translateY(-10px); border-color: var(--border-color); background: var(--bg-card); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .stat-box h3 { font-size: 40px; font-weight: 800; color: var(--text-main); margin-bottom: 5px; text-shadow: 0 0 20px var(--accent-glow); }
+        .stat-box p { font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- Бегущая строка --- */
+        .ticker-wrap { width: 100%; overflow: hidden; background: var(--bg-card); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 12px 0; margin-bottom: 60px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+        .ticker { display: inline-flex; white-space: nowrap; padding-right: 100%; box-sizing: content-box; animation: tickerAnim 30s linear infinite; }
+        .ticker-item { display: inline-flex; align-items: center; gap: 8px; margin-right: 40px; font-size: 14px; font-weight: 500; color: var(--text-muted); }
+        .ticker-item .user { color: var(--text-main); font-weight: 700; }
+        .ticker-item .game { color: var(--accent-color); font-weight: 700; }
+        .ticker-item i { color: var(--status-green); }
+        @keyframes tickerAnim { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
+        /* --- АНИМАЦИИ ПОЯВЛЕНИЯ ПРИ СКРОЛЛЕ --- */
+        .fade-up { opacity: 0; transform: translateY(50px) scale(0.95); transition: opacity 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .fade-up.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+        /* --- КАТАЛОГ И КАРТОЧКИ --- */
+        .section-title { text-align: center; font-size: 32px; font-weight: 800; margin-bottom: 40px; color: var(--text-main); }
+        .catalog { padding: 0 5% 80px; max-width: 1400px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; perspective: 1500px; }
+
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px;
+            padding: 32px; display: flex; flex-direction: column; position: relative;
+            transform-style: preserve-3d; transition: all 0.4s ease; overflow: hidden;
+        }
+        .card::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent); transform: skewX(-20deg); transition: 0.5s; z-index: 1; pointer-events: none; }
+        .card:hover::before { left: 150%; transition: 0.7s; }
+        .card-inner { transform: translateZ(40px); pointer-events: none; z-index: 2; position: relative; }
+        .card:hover { border-color: var(--accent-color); background: var(--bg-card-hover); box-shadow: 0 30px 60px -15px var(--accent-glow); }
+
+        .card-icon { width: 54px; height: 54px; background: rgba(150, 150, 150, 0.05); border: 1px solid var(--border-color); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--text-main); margin-bottom: 24px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover .card-icon { background: var(--accent-color); color: #fff; border-color: var(--accent-color); transform: translateZ(50px) scale(1.1); box-shadow: 0 0 20px var(--accent-glow); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .game-title { font-size: 24px; font-weight: 800; color: var(--text-main); }
+        .game-subtitle { font-size: 14px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+
+        .status { background: var(--status-green-bg); color: var(--status-green); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .status::before { content: ''; width: 6px; height: 6px; background: var(--status-green); border-radius: 50%; box-shadow: 0 0 10px var(--status-green); animation: pulseStatus 1.5s infinite; }
+        @keyframes pulseStatus { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+
+        .features-list { list-style: none; margin-bottom: 32px; flex-grow: 1; }
+        .features-list li { margin-bottom: 12px; font-size: 14px; color: var(--text-muted); display: flex; align-items: center; gap: 10px; font-weight: 500; transition: color 0.3s; }
+        .card:hover .features-list li { color: var(--text-main); }
+        .features-list li i { color: var(--accent-color); font-size: 12px; }
+
+        .price-row { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--border-color); pointer-events: auto; }
+        .price { font-size: 28px; font-weight: 800; }
+        .price span { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+
+        .buy-btn { padding: 12px 24px; background: var(--bg-main); color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 700; border-radius: 10px; transition: all 0.3s; border: 1px solid var(--border-color); position: relative; overflow: hidden; }
+        .card:hover .buy-btn { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
+
+        /* --- МОДАЛЬНЫЕ ОКНА --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(15px);
+            z-index: 10000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        .modal-content {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 24px;
+            padding: 40px; max-width: 550px; width: 90%; position: relative;
+            transform: scale(0.8) rotateX(-20deg) translateY(50px); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8); max-height: 90vh; overflow-y: auto;
+        }
+        .modal-content::-webkit-scrollbar { width: 6px; }
+        .modal-content::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        .modal-overlay.active .modal-content { transform: scale(1) rotateX(0) translateY(0); }
+
+        .close-btn { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; background: var(--bg-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--text-muted); transition: all 0.3s; border: 1px solid var(--border-color); }
+        .close-btn:hover { background: var(--border-color); color: var(--text-main); transform: rotate(180deg) scale(1.1); }
+
+        /* Окно товара */
+        .modal-header { margin-bottom: 24px; }
+        .modal-title { font-size: 32px; font-weight: 800; }
+        .modal-desc { font-size: 15px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; }
+        .modal-features { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+        
+        .configs-section { margin-bottom: 25px; }
+        .configs-title { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .configs-title span { font-size: 12px; background: rgba(59, 130, 246, 0.15); color: var(--accent-color); padding: 4px 10px; border-radius: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;}
+        .config-list { display: flex; flex-direction: column; gap: 10px; }
+        .config-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; transition: 0.3s; }
+        .config-item:hover { border-color: var(--text-muted); transform: translateX(5px); }
+        .config-item.active { border-color: var(--accent-color); background: rgba(59, 130, 246, 0.05); transform: translateX(5px); }
+        .config-info { display: flex; flex-direction: column; gap: 4px; }
+        .config-name { font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .config-price-tag { font-size: 13px; color: var(--text-muted); font-weight: 500;}
+        .config-item.active .config-price-tag { color: var(--accent-color); font-weight: 700; }
+        .config-checkbox { width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--border-color); display: flex; justify-content: center; align-items: center; transition: 0.3s; background: var(--bg-card); }
+        .config-item.active .config-checkbox { background: var(--accent-color); border-color: var(--accent-color); box-shadow: 0 0 10px var(--accent-glow); }
+        .config-item.active .config-checkbox::after { content: '\f00c'; font-family: 'FontAwesome'; font-size: 14px; color: #fff; font-weight: 900; }
+
+        .coupon-box { display: flex; gap: 12px; margin-bottom: 20px; }
+        .coupon-box input { flex-grow: 1; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; color: var(--text-main); font-size: 15px; font-weight: 600; outline: none; transition: 0.3s; }
+        .coupon-box input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .coupon-btn { padding: 14px 24px; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-size: 15px; font-weight: 700; transition: 0.3s; }
+        .coupon-btn:hover { background: var(--border-color); transform: translateY(-2px); }
+        .coupon-msg { font-size: 14px; margin-top: -10px; margin-bottom: 20px; font-weight: 600; display: none; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .support-box { background: rgba(59, 130, 246, 0.05); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 24px; font-size: 14px; color: var(--text-muted); text-align: center; font-weight: 500; }
+        .support-box a { color: var(--accent-color); text-decoration: none; font-weight: 700; }
+        
+        .modal-buy-btn {
+            display: inline-block; width: 100%; padding: 18px; background: linear-gradient(90deg, #2563eb, #3b82f6);
+            color: #fff; text-align: center; text-decoration: none; font-size: 18px; font-weight: 800; border-radius: 12px; transition: 0.3s;
+            box-shadow: 0 10px 25px -5px var(--accent-glow); position: relative; overflow: hidden; border: none;
+        }
+        .modal-buy-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent); transform: skewX(-20deg); transition: 0.5s; }
+        .modal-buy-btn:hover::before { left: 150%; }
+        .modal-buy-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px var(--accent-glow); }
+
+        /* --- Блок предупреждения (False Positive) --- */
+        .warning-box { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 15px; margin-bottom: 25px; font-size: 13px; color: #fca5a5; text-align: left; line-height: 1.5; }
+        .warning-box strong { color: #ef4444; }
+
+        /* Окно Лаунчера */
+        #launcherModal .modal-content { text-align: center; max-width: 480px; }
+
+        /* --- TOAST УВЕДОМЛЕНИЯ --- */
+        #toast-container { position: fixed; bottom: 30px; left: 30px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, toastOut 0.5s 4.5s ease-in forwards; }
+        .toast-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); color: var(--accent-color); display: flex; justify-content: center; align-items: center; font-size: 18px; border: 1px solid rgba(59, 130, 246, 0.3);}
+        .toast-content { display: flex; flex-direction: column; }
+        .toast-title { font-size: 14px; font-weight: 700; color: var(--text-main); }
+        .toast-desc { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
+        @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
+
+        /* --- КОНТЕКСТНОЕ МЕНЮ --- */
+        #custom-menu {
+            position: fixed; background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 8px; width: 220px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            z-index: 100000; opacity: 0; visibility: hidden; transform: scale(0.95); transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+        }
+        #custom-menu.active { opacity: 1; visibility: visible; transform: scale(1); }
+        .menu-item { padding: 10px 15px; font-size: 14px; color: var(--text-main); border-radius: 8px; display: flex; align-items: center; gap: 10px; transition: 0.2s; font-weight: 500; }
+        .menu-item:hover { background: var(--accent-color); color: #fff; }
+        .menu-separator { height: 1px; background: var(--border-color); margin: 5px 0; }
+
+        footer { text-align: center; padding: 40px 20px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 14px; background: var(--bg-card); margin-top: 50px; }
+        footer a { color: var(--accent-color); text-decoration: none; font-weight: 600; }
+        footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-outline" id="cursor-outline"></div>
+
+    <canvas id="particles-canvas"></canvas>
+    <div class="bg-glow"></div>
+
+    <div id="toast-container"></div>
+
+    <div id="custom-menu">
+        <div class="menu-item hover-target" id="menuCopy"><i class="fa-solid fa-link"></i> Скопировать ссылку</div>
+        <div class="menu-item hover-target" onclick="window.open('https://t.me/X_PROJECT7')"><i class="fa-brands fa-telegram"></i> Наш Telegram</div>
+        <div class="menu-separator"></div>
+        <div class="menu-item hover-target" onclick="window.scrollTo({top:0, behavior:'smooth'})"><i class="fa-solid fa-arrow-up"></i> Наверх страницы</div>
+    </div>
+
+    <nav>
+        <div class="logo hover-target" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+            <i class="fa-solid fa-layer-group logo-icon"></i>
+            X-PROJECT
+        </div>
+        <div class="controls">
+            <select id="currencySelector" class="hover-target">
+                <option value="RUB">RUB ₽</option>
+                <option value="USD">USD $</option>
+                <option value="EUR">EUR €</option>
+            </select>
+            <select id="langSelector" class="hover-target">
+                <option value="ru">RU</option>
+                <option value="en">EN</option>
+            </select>
+            <div class="theme-btn hover-target" id="themeToggle"><i class="fa-solid fa-moon"></i></div>
+        </div>
+    </nav>
+
+    <header class="fade-up">
+        <h1 data-i18n="h1">Инновационный софт для<br><span class="highlight">доминации</span></h1>
+        <p data-i18n="desc">Премиум алгоритмы и обход современных античитов. Мы обеспечиваем максимальную безопасность и стабильность.</p>
+        
+        <div class="launcher-btn-wrap">
+            <button class="launcher-btn hover-target" id="openLauncherBtn">
+                <i class="fa-solid fa-cloud-arrow-down"></i> <span data-i18n="btn_launcher_main">Скачать лаунчер</span>
+            </button>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-box hover-target">
+                <h3>1 000+</h3>
+                <p data-i18n="stat1">Активных юзеров</p>
+            </div>
+            <div class="stat-box hover-target">
+                <h3>15+</h3>
+                <p data-i18n="stat2">Поддерживаемых игр</p>
+            </div>
+            <div class="stat-box hover-target">
+                <h3>24/7</h3>
+                <p data-i18n="stat3">Поддержка онлайн</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="ticker-wrap fade-up">
+        <div class="ticker" id="tickerContent"></div>
+    </div>
+
+    <section class="catalog">
+        <h2 class="section-title fade-up" data-i18n="catalog_title">Наш Каталог</h2>
+        <div class="grid">
+            
+            <div class="card fade-up hover-target" data-base-price="250" data-configs='[{"n":"Safe Conqueror CFG", "p":60}, {"n":"Brutal Rage iPadView", "p":90}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">PUBG Mobile</div>
+                    <div class="game-subtitle">Phoenix Mobile Hack</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_pubg1">Умный Аибот (360 Доводка)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_pubg2">Цветной ESP скелет врагов</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_pubg3">Антиотдача (No Recoil 100%)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_pubg4">Обход эмулятора / Защиты</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">250</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="240" data-configs='[{"n":"Legit Rank Up Profile", "p":50}, {"n":"Rage Soft Trigger", "p":80}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-jet-fighter"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">CoD: Mobile</div>
+                    <div class="game-subtitle">Strike Mobile Multi</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_codm1">Плавный Silent Aimbot</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_codm2">Wallhack и радар на карте</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_codm3">Быстрая перезарядка оружия</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_codm4">Анти-бан система логов</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">240</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="150" data-configs='[{"n":"Auto-Headshot Pro", "p":30}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-fire"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Free Fire</div>
+                    <div class="game-subtitle">Macro Injector</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_ff1">100% Автошот при прицеле</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_ff2">ESP Линии до игроков</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_ff3">Увеличенная скорострельность</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_ff4">Полностью скрытый софт</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">150</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="299" data-configs='[{"n":"God Mode + Teleport All", "p":80}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Genshin Impact</div>
+                    <div class="game-subtitle">Teyvat Engine</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_gi1">Телепорт к сундукам/окулам</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_gi2">Режим бога и ваншот боссов</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_gi3">Бесконечная выносливость</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_gi4">Встроенный Спидхак мира</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">299</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="590" data-configs='[{"n":"Full Loot Filter", "p":100}, {"n":"Rage Silent", "p":140}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-mask-ventilator"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Arena Breakout</div>
+                    <div class="game-subtitle">Infinite Private</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_ab1">Фильтр дорогого лута</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_ab2">Показ ТТХ и скелетов игроков</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_ab3">Отключение отдачи оружия</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_ab4">Обход защиты ACE Anti-Cheat</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">590</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="290" data-configs='[{"n":"Legit CFG by Admin", "p":50}, {"n":"Rage / HvH CFG", "p":90}, {"n":"Faceit Safe CFG", "p":150}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-crosshairs"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Counter-Strike 2</div>
+                    <div class="game-subtitle">Aura Internal Hack</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_cs1">Высокоточный Aimbot (Legit)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_cs2">Настраиваемый Visual ESP</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_cs3">Cloud Radar & Skinchanger</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_cs4">Защита от VAC Live</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">290</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="790" data-configs='[{"n":"M249 Beam Macro", "p":100}, {"n":"Streamer Safe CFG", "p":80}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-radiation"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Rust</div>
+                    <div class="game-subtitle">External + Spoofer</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_rust1">Идеальный No Recoil (Скрипт)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_rust2">Отображение лута и тайников</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_rust3">Отключение урона от падения</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_rust4">EAC Bypass (Ring0)</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">790</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="1290" data-configs='[{"n":"Radiant Legit Profile", "p":200}, {"n":"Aggressive Trigger CFG", "p":150}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Valorant</div>
+                    <div class="game-subtitle">Hardware Pixel-Bot</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_val1">Невидимый Triggerbot</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_val2">Humanized Aim Assist</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_val3">Не внедряется в память</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_val4">Vanguard Safe</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">1290</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="390" data-configs='[{"n":"FNCS Winner CFG", "p":150}, {"n":"W-Key Rage CFG", "p":99}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-person-skating"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Fortnite</div>
+                    <div class="game-subtitle">Phantom External</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_fn1">ВХ на игроков, сундуки и дроп</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_fn2">Плавный доводчик мыши (FOV)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_fn3">Бесплатный HWID Спуфер</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_fn4">Обход EAC и BattlEye</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">390</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="190" data-configs='[{"n":"Hypixel Bypass CFG", "p":60}, {"n":"Anarchy PvP CFG", "p":80}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-cube"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Minecraft</div>
+                    <div class="game-subtitle">Eternity Client</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_mc1">Мощная KillAura (360)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_mc2">Безопасный Fly & Speedhack</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_mc3">X-Ray (Показ алмазов и руд)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_mc4">Обход Matrix, AAC, Vulcan</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">190</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="149" data-configs='[{"n":"Arsenal Aimbot Script", "p":40}, {"n":"Blox Fruits Auto-Farm", "p":60}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-gamepad"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Roblox</div>
+                    <div class="game-subtitle">Synapse Executor</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_rb1">Мощный инжектор скриптов</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_rb2">Встроенный Аимбот на шутеры</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_rb3">Накрутка в популярных режимах</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_rb4">Полный обход античита Byfron</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">149</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="249" data-configs='[{"n":"Global Elite CFG", "p":70}, {"n":"HvH (Крутилка) CFG", "p":100}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-gun"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Standoff 2</div>
+                    <div class="game-subtitle">Phoenix Hack (PC)</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_so1">Жесткий Аимбот (в голову)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_so2">Показ игроков сквозь стены</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_so3">Skinchanger (Все ножи)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_so4">Анти-отдача оружия</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">249</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="180" data-configs='[{"n":"Auto-Push Rank 30", "p":50}, {"n":"Piper God CFG", "p":40}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-star"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Brawl Stars</div>
+                    <div class="game-subtitle">StarCheat Menu</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_bs1">Авто-наведение ульты и атак</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_bs2">Показ врагов в кустах (ВХ)</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_bs3">Калькулятор траектории</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_bs4">Безопасно для основы</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">180</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="1500" data-configs='[{"n":"Loot Goblin Filter", "p":200}, {"n":"Labs Chad CFG", "p":300}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-person-rifle"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Escape From Tarkov</div>
+                    <div class="game-subtitle">Private DMA Cheat</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_eft1">Умный фильтр цен на лут</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_eft2">Чамсы на игроков и ботов</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_eft3">Бесконечная стамина</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_eft4">Максимальная скрытность</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">1500</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="490" data-configs='[{"n":"Tinker/Meepo Macros", "p":90}, {"n":"Safe Support Maphack", "p":60}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-dragon"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">Dota 2</div>
+                    <div class="game-subtitle">Script Platform</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_dota1">Видимость телепортов / вардов</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_dota2">Авто-хекс и уклонения</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_dota3">Скрипты на 120+ героев</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_dota4">Отдаление камеры (Zoom)</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">490</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ 30 дней</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+            <div class="card fade-up hover-target" data-base-price="300" data-configs='[{"n":"Bypass Admin CFG", "p":80}, {"n":"Troll Session Menu", "p":50}]'>
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-car"></i></div>
+                        <div class="status">Undetected</div>
+                    </div>
+                    <div class="game-title">GTA V / FiveM</div>
+                    <div class="game-subtitle">Premium Mod Menu</div>
+                    <br>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_gta1">Накрутка денег и RP</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_gta2">Краш игроков в сессии</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_gta3">God Mode & Телепорт</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="f_gta4">Обход серверных защит</span></li>
+                    </ul>
+                </div>
+                <div class="price-row">
+                    <div class="price"><span class="price-val">300</span><span class="price-sym">₽</span> <span class="price-period" data-i18n="per_month">/ Навсегда</span></div>
+                    <div class="buy-btn" data-i18n="btn_select">Выбрать</div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal-content hover-target">
+            <div class="close-btn hover-target" id="closeModal"><i class="fa-solid fa-xmark"></i></div>
+            
+            <div class="modal-header">
+                <div id="modalStatus" style="margin-bottom: 12px; display: inline-flex;">Статус</div>
+                <div class="modal-title" id="modalTitle">Игра</div>
+                <div class="game-subtitle" id="modalSubtitle" style="margin-top: 5px; font-size: 16px;">Тип софта</div>
+                <div class="modal-desc" data-i18n="modal_desc">Приватная версия ПО с максимальным уровнем оптимизации. Стабильная работа на всех версиях ОС Windows.</div>
+            </div>
+            
+            <div class="modal-features">
+                <h4 style="color: var(--text-main); margin-bottom: 15px; font-weight: 700; font-size: 18px;" data-i18n="modal_feat_title">Включенные функции:</h4>
+                <ul class="features-list" id="modalFeatures" style="margin-bottom: 0;"></ul>
+            </div>
+
+            <div class="configs-section" id="modalConfigsSection" style="display: none;">
+                <div class="configs-title"><span data-i18n="modal_cfg_title">Дополнительные конфиги</span> <span data-i18n="modal_cfg_rec">Рекомендуем</span></div>
+                <div class="config-list" id="modalConfigList"></div>
+            </div>
+            
+            <div class="coupon-box">
+                <input type="text" class="hover-target" id="couponInput" data-i18n-placeholder="coupon_placeholder" placeholder="У вас есть промокод?">
+                <div class="coupon-btn hover-target" id="applyCoupon" data-i18n="btn_activate">Активировать</div>
+            </div>
+            <div class="coupon-msg" id="couponMsg"></div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <div style="color: var(--text-muted); font-size: 15px; font-weight: 600;" data-i18n="total_pay">Итого к оплате:</div>
+                <div class="price" id="modalPrice" style="font-size: 32px; color: var(--accent-color);">0 ₽</div>
+            </div>
+
+            <div class="support-box">
+                <i class="fa-solid fa-headset"></i> <span data-i18n="support_text">Поможем с установкой и всё настроим.</span><br>
+                <span data-i18n="support_link">Техподдержка 24/7:</span> <a href="https://t.me/X_PROJECT7" target="_blank" class="hover-target">@X_PROJECT7</a>
+            </div>
+
+            <a href="https://t.me/X_PROJECT7" target="_blank" class="modal-buy-btn hover-target" data-i18n="btn_buy_final">Оплатить и получить доступ</a>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="launcherModal">
+        <div class="modal-content hover-target" style="text-align: center; max-width: 480px;">
+            <div class="close-btn hover-target" id="closeLauncherModal"><i class="fa-solid fa-xmark"></i></div>
+            
+            <i class="fa-solid fa-cloud-arrow-down" style="font-size: 60px; color: var(--accent-color); margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--accent-glow));"></i>
+            <h2 style="font-size: 28px; margin-bottom: 15px; color: var(--text-main);" data-i18n="launcher_modal_title">Установка лаунчера</h2>
+            
+            <div class="warning-box">
+                <i class="fa-solid fa-shield-cat" style="margin-right: 5px; color: #ef4444;"></i>
+                <strong data-i18n="launcher_warn_title">Ложное срабатывание (False Positive):</strong><br>
+                <span data-i18n="launcher_warn_desc" style="display: block; margin-top: 5px;">Из-за специфики работы алгоритмов обхода (инжект в память), встроенные системы защиты Windows и браузера могут реагировать на файл. Для успешного запуска может потребоваться добавить лаунчер в исключения.</span>
+            </div>
+            
+            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 15px;" data-i18n="launcher_modal_desc">Для получения актуальной версии лоадера и ключа доступа, обратитесь к менеджеру.</p>
+            
+            <a href="https://t.me/X_PROJECT7" target="_blank" class="modal-buy-btn hover-target" style="display: inline-block; width: auto; padding: 16px 40px;" data-i18n="btn_launcher_dl">Написать в Telegram</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 X-PROJECT. <span data-i18n="footer_copy">Продукты предоставлены для ознакомления.</span></p>
+        <p style="margin-top: 15px;">
+            <span data-i18n="footer_contact">Связь с администрацией:</span> <a href="https://t.me/X_PROJECT7" target="_blank" class="hover-target">Telegram Поддержка</a>
+        </p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 0. ДИНАМИЧЕСКИЙ ЗАГОЛОВОК ВКЛАДКИ ---
+            let originalTitle = document.title;
+            window.addEventListener("blur", () => { document.title = "🔥 Ждем тебя обратно!"; });
+            window.addEventListener("focus", () => { document.title = originalTitle; });
+
+            // --- 1. КАСТОМНЫЙ КУРСОР ---
+            const cursorDot = document.getElementById('cursor-dot');
+            const cursorOutline = document.getElementById('cursor-outline');
+            
+            window.addEventListener('mousemove', (e) => {
+                const posX = e.clientX; const posY = e.clientY;
+                cursorDot.style.left = `${posX}px`; cursorDot.style.top = `${posY}px`;
+                cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 150, fill: "forwards" });
+            });
+
+            const refreshCursorTriggers = () => {
+                document.querySelectorAll('.hover-target, a, .card, .menu-item, select, input, .coupon-btn, .buy-btn, .close-btn, .theme-btn').forEach(target => {
+                    target.addEventListener('mouseenter', () => cursorOutline.classList.add('hovering'));
+                    target.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovering'));
+                });
+            };
+            refreshCursorTriggers();
+
+            // --- 2. ИНТЕРАКТИВНЫЙ ФОН (ЧАСТИЦЫ) ---
+            const canvas = document.getElementById('particles-canvas'); const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            let particlesArray = []; let mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+            window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
+
+            class Particle {
+                constructor(x, y, directionX, directionY, size) { this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; }
+                draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = document.body.getAttribute('data-theme') === 'light' ? '#2563eb' : '#3b82f6'; ctx.fill(); }
+                update() {
+                    if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                    if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+                    let dx = mouse.x - this.x; let dy = mouse.y - this.y; let distance = Math.sqrt(dx*dx + dy*dy);
+                    if (distance < mouse.radius) {
+                        if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 2;
+                        if (mouse.x > this.x && this.x > this.size * 10) this.x -= 2;
+                        if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 2;
+                        if (mouse.y > this.y && this.y > this.size * 10) this.y -= 2;
+                    }
+                    this.x += this.directionX; this.y += this.directionY; this.draw();
+                }
+            }
+            function initParticles() {
+                particlesArray = []; let numberOfParticles = (canvas.height * canvas.width) / 15000;
+                for (let i = 0; i < numberOfParticles; i++) {
+                    let size = (Math.random() * 2) + 1;
+                    let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                    let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                    particlesArray.push(new Particle(x, y, (Math.random() * 1) - 0.5, (Math.random() * 1) - 0.5, size));
+                }
+            }
+            function connectParticles() {
+                for(let a=0; a<particlesArray.length; a++){
+                    for(let b=a; b<particlesArray.length; b++){
+                        let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                        if(distance < (canvas.width/7) * (canvas.height/7)){
+                            ctx.strokeStyle = document.body.getAttribute('data-theme') === 'light' ? 'rgba(37,99,235,0.05)' : 'rgba(59,130,246,0.1)';
+                            ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke();
+                        }
+                    }
+                }
+            }
+            function animateParticles() { requestAnimationFrame(animateParticles); ctx.clearRect(0, 0, innerWidth, innerHeight); for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); } connectParticles(); }
+            initParticles(); animateParticles();
+
+            // --- 3. TOAST УВЕДОМЛЕНИЯ ---
+            const toastContainer = document.getElementById('toast-container');
+            const gameNames = ["PUBG Mobile", "CoD: Mobile", "CS2 Aura", "Rust Spoofer", "Valorant Pixel", "Fortnite", "Minecraft CFG", "Brawl Stars"];
+            const users = ["Anon***", "User82*", "Sniper**", "God***", "ProPlayer", "Keks_33", "Hack**"];
+            function showToast() {
+                const game = gameNames[Math.floor(Math.random() * gameNames.length)]; const user = users[Math.floor(Math.random() * users.length)];
+                const toast = document.createElement('div'); toast.className = 'toast';
+                toast.innerHTML = `<div class="toast-icon"><i class="fa-solid fa-basket-shopping"></i></div><div class="toast-content"><span class="toast-title">Новая покупка</span><span class="toast-desc">${user} купил ${game}</span></div>`;
+                toastContainer.appendChild(toast); setTimeout(() => { toast.remove(); }, 5000);
+            }
+            (function loopToast() { setTimeout(() => { showToast(); loopToast(); }, Math.random() * 10000 + 5000); })();
+
+            // --- 4. КОНТЕКСТНОЕ МЕНЮ ---
+            const customMenu = document.getElementById('custom-menu');
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault(); let x = e.clientX; let y = e.clientY;
+                if (x + 220 > window.innerWidth) x = window.innerWidth - 230; if (y + 150 > window.innerHeight) y = window.innerHeight - 160;
+                customMenu.style.left = `${x}px`; customMenu.style.top = `${y}px`; customMenu.classList.add('active');
+            });
+            document.addEventListener('click', () => { customMenu.classList.remove('active'); });
+            document.getElementById('menuCopy').addEventListener('click', () => { navigator.clipboard.writeText(window.location.href); alert(currentLang === 'ru' ? 'Ссылка скопирована!' : 'Link copied!'); });
+
+            // --- 5. ГЕНЕРАЦИЯ TICKER'А ---
+            const tickerContent = document.getElementById('tickerContent');
+            const gamesList = ["PUBG Mobile", "CoD: Mobile", "Free Fire", "Genshin Impact", "Arena Breakout", "CS2", "Rust", "Valorant", "Fortnite", "Minecraft", "Roblox"];
+            let tickerHTML = "";
+            for(let i=0; i<15; i++) {
+                const id = Math.floor(Math.random() * 9000) + 1000; const g = gamesList[Math.floor(Math.random() * gamesList.length)];
+                tickerHTML += `<div class="ticker-item"><i class="fa-solid fa-circle-check"></i> <span class="user">User${id}</span> приобрел доступ к <span class="game">${g}</span></div>`;
+            }
+            tickerContent.innerHTML = tickerHTML + tickerHTML;
+
+            // --- 6. ПЕРЕКЛЮЧЕНИЕ ТЕМЫ ---
+            const themeBtn = document.getElementById('themeToggle'); let isDark = true;
+            themeBtn.addEventListener('click', () => {
+                isDark = !isDark; document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+            });
+
+            // --- 7. 3D АНИМАЦИЯ КАРТОЧЕК ---
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    if (window.innerWidth < 768) return; 
+                    const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+                    const rotateX = ((y - (rect.height / 2)) / (rect.height / 2)) * -12; const rotateY = ((x - (rect.width / 2)) / (rect.width / 2)) * 12;
+                    card.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03, 1.03, 1.03)`; card.style.transition = 'none';
+                });
+                card.addEventListener('mouseleave', () => { card.style.transform = `perspective(1500px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`; card.style.transition = 'transform 0.5s ease, box-shadow 0.4s, border-color 0.4s'; });
+            });
+
+            // --- 8. АНИМАЦИЯ ПРИ СКРОЛЛЕ ---
+            const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('visible'); }); }, { threshold: 0.1 });
+            document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+            // --- 9. МУЛЬТИВАЛЮТНОСТЬ И МУЛЬТИЯЗЫЧНОСТЬ ---
+            const currencySelector = document.getElementById('currencySelector'); const langSelector = document.getElementById('langSelector');
+            const rates = { RUB: 1, USD: 0.011, EUR: 0.01 }; const symbols = { RUB: '₽', USD: '$', EUR: '€' };
+            let currentCurrency = 'RUB'; let currentLang = 'ru';
+
+            const dictionary = {
+                ru: {
+                    h1: "Инновационный софт для<br><span class='highlight'>доминации</span>",
+                    desc: "Премиум алгоритмы и обход современных античитов. Мы обеспечиваем максимальную безопасность и стабильность.",
+                    stat1: "Активных юзеров", stat2: "Поддерживаемых игр", stat3: "Поддержка онлайн",
+                    catalog_title: "Наш Каталог", per_month: "/ 30 дней", btn_select: "Выбрать",
+                    modal_desc: "Приватная версия ПО с максимальным уровнем оптимизации. Стабильная работа на всех версиях ОС Windows.",
+                    modal_feat_title: "Включенные функции:", modal_cfg_title: "Дополнительные конфиги", modal_cfg_rec: "Рекомендуем",
+                    coupon_placeholder: "У вас есть промокод?", btn_activate: "Активировать", total_pay: "Итого к оплате:",
+                    support_text: "Поможем с установкой и всё настроим.", support_link: "Техподдержка 24/7:", btn_buy_final: "Оплатить и получить доступ",
+                    footer_copy: "Продукты предоставлены для ознакомления.", footer_contact: "Связь с администрацией:",
+                    btn_launcher_main: "Скачать лаунчер", launcher_modal_title: "Установка лаунчера",
+                    launcher_warn_title: "Ложное срабатывание (False Positive):",
+                    launcher_warn_desc: "Из-за специфики работы алгоритмов обхода (инжект в память), встроенные системы защиты Windows и браузера могут реагировать на файл. Для успешного запуска может потребоваться добавить лаунчер в исключения.",
+                    launcher_modal_desc: "Для получения актуальной версии лоадера и ключа доступа, обратитесь к менеджеру.", btn_launcher_dl: "Написать в Telegram",
+                    f_pubg1: "Умный Аибот (360 Доводка)", f_pubg2: "Цветной ESP скелет врагов", f_pubg3: "Антиотдача (No Recoil 100%)", f_pubg4: "Обход эмулятора / Защиты",
+                    f_codm1: "Плавный Silent Aimbot", f_codm2: "Wallhack и радар на карте", f_codm3: "Быстрая перезарядка оружия", f_codm4: "Анти-бан система логов",
+                    f_ff1: "100% Автошот при прицеле", f_ff2: "ESP Линии до игроков", f_ff3: "Увеличенная скорострельность", f_ff4: "Полностью скрытый софт",
+                    f_gi1: "Телепорт к сундукам/окулам", f_gi2: "Режим бога и ваншот боссов", f_gi3: "Бесконечная выносливость", f_gi4: "Встроенный Спидхак мира",
+                    f_ab1: "Фильтр дорогого лута", f_ab2: "Показ ТТХ и скелетов игроков", f_ab3: "Отключение отдачи оружия", f_ab4: "Обход защиты ACE Anti-Cheat",
+                    f_cs1: "Высокоточный Aimbot (Legit)", f_cs2: "Настраиваемый Visual ESP", f_cs3: "Cloud Radar & Skinchanger", f_cs4: "Защита от VAC Live",
+                    f_rust1: "Идеальный No Recoil (Скрипт)", f_rust2: "Отображение лута и тайников", f_rust3: "Отключение урона от падения", f_rust4: "EAC Bypass (Ring0)",
+                    f_val1: "Невидимый Triggerbot", f_val2: "Humanized Aim Assist", f_val3: "Не внедряется в память", f_val4: "Vanguard Safe",
+                    f_fn1: "ВХ на игроков, сундуки и дроп", f_fn2: "Плавный доводчик мыши (FOV)", f_fn3: "Бесплатный HWID Спуфер", f_fn4: "Обход EAC и BattlEye",
+                    f_mc1: "Мощная KillAura (360)", f_mc2: "Безопасный Fly & Speedhack", f_mc3: "X-Ray (Показ алмазов и руд)", f_mc4: "Обход Matrix, AAC, Vulcan",
+                    f_rb1: "Мощный инжектор скриптов", f_rb2: "Встроенный Аимбот на шутеры", f_rb3: "Накрутка в популярных режимах", f_rb4: "Полный обход античита Byfron",
+                    f_so1: "Жесткий Аимбот (в голову)", f_so2: "Показ игроков сквозь стены", f_so3: "Skinchanger (Все ножи)", f_so4: "Анти-отдача оружия",
+                    f_bs1: "Авто-наведение ульты и атак", f_bs2: "Показ врагов в кустах (ВХ)", f_bs3: "Калькулятор траектории", f_bs4: "Безопасно для основы",
+                    f_eft1: "Умный фильтр цен на лут", f_eft2: "Чамсы на игроков и ботов", f_eft3: "Бесконечная стамина", f_eft4: "Максимальная скрытность",
+                    f_dota1: "Видимость телепортов / вардов", f_dota2: "Авто-хекс и уклонения", f_dota3: "Скрипты на 120+ героев", f_dota4: "Отдаление камеры (Zoom)",
+                    f_gta1: "Накрутка денег и RP", f_gta2: "Краш игроков в сессии", f_gta3: "God Mode & Телепорт", f_gta4: "Обход серверных защит",
+                    f_dl1: "Авто-LastHit (Добивание)", f_dl2: "ESP на героев и лес", f_dl3: "Aimbot для трекинга", f_dl4: "Безопасно для аккаунта"
+                },
+                en: {
+                    h1: "Innovative Software for<br><span class='highlight'>domination</span>",
+                    desc: "Premium algorithms and modern anti-cheat bypass. We provide maximum security and stability.",
+                    stat1: "Active Users", stat2: "Supported Games", stat3: "Online Support",
+                    catalog_title: "Our Catalog", per_month: "/ 30 days", btn_select: "Select",
+                    modal_desc: "Private software version with maximum optimization. Stable operation on all Windows OS versions.",
+                    modal_feat_title: "Included features:", modal_cfg_title: "Additional Configs", modal_cfg_rec: "Recommended",
+                    coupon_placeholder: "Have a promo code?", btn_activate: "Activate", total_pay: "Total to pay:",
+                    support_text: "We will help with installation and setup.", support_link: "Support 24/7:", btn_buy_final: "Pay and Get Access",
+                    footer_copy: "Products are provided for educational purposes.", footer_contact: "Contact administration:",
+                    btn_launcher_main: "Download Launcher", launcher_modal_title: "Loader Installation",
+                    launcher_warn_title: "False Positive Warning:",
+                    launcher_warn_desc: "Due to the nature of bypass algorithms (memory injection), Windows and browser security systems may flag the file. You may need to add the launcher to your exclusions for it to run successfully.",
+                    launcher_modal_desc: "To get the latest loader version and access key, please contact us on Telegram.", btn_launcher_dl: "Message in Telegram",
+                    f_pubg1: "Smart Aimbot (360 Lock)", f_pubg2: "Colored ESP Skeleton", f_pubg3: "No Recoil (100% stable)", f_pubg4: "Emulator Bypass Safe",
+                    f_codm1: "Smooth Silent Aimbot", f_codm2: "Wallhack & Radar Active", f_codm3: "Fast Weapon Reload", f_codm4: "Anti-Ban Logs Cleaner",
+                    f_ff1: "100% Auto-Headshot Close", f_ff2: "ESP Lines To Enemy", f_ff3: "Increased Fire Rate", f_ff4: "Completely Hidden Soft",
+                    f_gi1: "Teleport to Chests", f_gi2: "God Mode Enabled", f_gi3: "Infinite Stamina/Run", f_gi4: "Speedhack Core",
+                    f_ab1: "Loot ESP with Price Filter", f_ab2: "Player Skeletons", f_ab3: "No Recoil & Sway", f_ab4: "ACE Anti-Cheat Bypass",
+                    f_cs1: "High-precision Aimbot (Legit)", f_cs2: "Customizable Visual ESP", f_cs3: "Cloud Radar & Skinchanger", f_cs4: "VAC Live Bypass",
+                    f_rust1: "Perfect No Recoil (Script)", f_rust2: "Loot and Stash ESP", f_rust3: "No Fall Damage", f_rust4: "EAC Bypass (Ring0)",
+                    f_val1: "Invisible Triggerbot", f_val2: "Humanized Aim Assist", f_val3: "External Memory", f_val4: "Vanguard Safe",
+                    f_fn1: "Player and Chest ESP", f_fn2: "Smooth Mouse Aimbot (FOV)", f_fn3: "Free HWID Spoofer", f_fn4: "EAC & BattlEye Bypass",
+                    f_mc1: "Powerful KillAura (360)", f_mc2: "Safe Fly & Speedhack", f_mc3: "X-Ray (Diamond/Ores)", f_mc4: "Matrix, AAC, Vulcan Bypass",
+                    f_rb1: "Powerful Script Injector", f_rb2: "Built-in Shooter Aimbot", f_rb3: "Top Modes Auto-Farm", f_rb4: "Byfron Anti-Cheat Bypass",
+                    f_so1: "Hard Aimbot (Head)", f_so2: "Player ESP (Wallhack)", f_so3: "Skinchanger (All Knives)", f_so4: "Weapon No Recoil",
+                    f_bs1: "Auto-Aim Ultimates/Attacks", f_bs2: "Bush ESP (See Enemies)", f_bs3: "Trajectory Calculator", f_bs4: "Safe for Main Account",
+                    f_eft1: "Smart Price Loot Filter", f_eft2: "Player and Bot Chams", f_eft3: "Infinite Stamina Max", f_eft4: "Maximum Stealth Bypass",
+                    f_dota1: "Maphack (Fog of War)", f_dota2: "Auto-Hex and Dodges", f_dota3: "120+ Heroes Script Engine", f_dota4: "Camera Unlock (Zoom)",
+                    f_gta1: "Money & RP Generator", f_gta2: "Crash Players in Session", f_gta3: "God Mode & Teleport", f_gta4: "Server Anti-Cheat Bypass",
+                    f_dl1: "Auto-LastHit Deny Minions", f_dl2: "Hero and Jungle ESP", f_dl3: "Tracking Precise Aimbot", f_dl4: "Account Ban Protection"
+                }
+            };
+
+            function updatePricesOnPage() {
+                const multiplier = rates[currentCurrency]; const symbol = symbols[currentCurrency];
+                cards.forEach(card => {
+                    const basePrice = parseInt(card.getAttribute('data-base-price'));
+                    card.querySelector('.price-val').innerText = Math.ceil(basePrice * multiplier);
+                    card.querySelector('.price-sym').innerText = symbol;
+                });
+                if(modal.classList.contains('active')) {
+                    updateModalPriceDisplay();
+                    renderConfigs(JSON.parse(activeCard.getAttribute('data-configs') || '[]'));
+                }
+            }
+
+            function updateLanguage() {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    if (dictionary[currentLang][el.getAttribute('data-i18n')]) el.innerHTML = dictionary[currentLang][el.getAttribute('data-i18n')];
+                });
+                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                    if (dictionary[currentLang][el.getAttribute('data-i18n-placeholder')]) el.placeholder = dictionary[currentLang][el.getAttribute('data-i18n-placeholder')];
+                });
+            }
+
+            currencySelector.addEventListener('change', (e) => { currentCurrency = e.target.value; updatePricesOnPage(); });
+            langSelector.addEventListener('change', (e) => { currentLang = e.target.value; updateLanguage(); });
+
+            // --- 10. МОДАЛЬНЫЕ ОКНА И КОНФИГИ ---
+            const modal = document.getElementById('infoModal'); const closeBtn = document.getElementById('closeModal');
+            const launcherModal = document.getElementById('launcherModal'); const openLauncherBtn = document.getElementById('openLauncherBtn'); const closeLauncherModal = document.getElementById('closeLauncherModal');
+            const couponInput = document.getElementById('couponInput'); const applyCouponBtn = document.getElementById('applyCoupon');
+            const couponMsg = document.getElementById('couponMsg'); const modalPrice = document.getElementById('modalPrice');
+            const configsSection = document.getElementById('modalConfigsSection'); const configList = document.getElementById('modalConfigList');
+            
+            let activeBasePriceRUB = 0; let configTotalPriceRUB = 0; let isFreeCouponActive = false; let activeCard = null;
+
+            // Логика Лаунчера
+            openLauncherBtn.addEventListener('click', () => { launcherModal.classList.add('active'); });
+            closeLauncherModal.addEventListener('click', () => { launcherModal.classList.remove('active'); });
+            launcherModal.addEventListener('click', (e) => { if (e.target === launcherModal) launcherModal.classList.remove('active'); });
+
+            function updateModalPriceDisplay() {
+                const symbol = symbols[currentCurrency]; const multiplier = rates[currentCurrency];
+                if (isFreeCouponActive) {
+                    modalPrice.innerHTML = `0${symbol} <span data-i18n="per_month" style="font-size:16px; font-weight:600;">${dictionary[currentLang]["per_month"]} (Free)</span>`;
+                } else {
+                    const totalRUB = activeBasePriceRUB + configTotalPriceRUB;
+                    modalPrice.innerHTML = `${Math.ceil(totalRUB * multiplier)}${symbol} <span data-i18n="per_month" style="font-size:16px; font-weight:600;">${dictionary[currentLang]["per_month"]}</span>`;
+                }
+            }
+
+            function renderConfigs(configs) {
+                configList.innerHTML = ""; configTotalPriceRUB = 0;
+                const symbol = symbols[currentCurrency]; const multiplier = rates[currentCurrency];
+
+                if (configs && configs.length > 0) {
+                    configsSection.style.display = "block";
+                    configs.forEach(cfg => {
+                        const cfgDiv = document.createElement('div'); cfgDiv.className = 'config-item hover-target';
+                        cfgDiv.innerHTML = `
+                            <div class="config-info"><div class="config-name">${cfg.n}</div><div class="config-price-tag">+${Math.ceil(cfg.p * multiplier)}${symbol}</div></div>
+                            <div class="config-checkbox"></div>
+                        `;
+                        cfgDiv.addEventListener('click', () => {
+                            cfgDiv.classList.toggle('active');
+                            if (cfgDiv.classList.contains('active')) configTotalPriceRUB += cfg.p; else configTotalPriceRUB -= cfg.p;
+                            updateModalPriceDisplay();
+                        });
+                        configList.appendChild(cfgDiv);
+                    });
+                    refreshCursorTriggers();
+                } else { configsSection.style.display = "none"; }
+            }
+
+            cards.forEach(card => {
+                card.addEventListener('click', function(event) {
+                    if(event.target.classList.contains('buy-btn')) return;
+                    activeCard = this; couponInput.value = ""; couponMsg.style.display = "none"; isFreeCouponActive = false;
+                    
+                    activeBasePriceRUB = parseInt(this.getAttribute('data-base-price'));
+                    document.getElementById('modalTitle').innerText = this.querySelector('.game-title').innerText;
+                    document.getElementById('modalSubtitle').innerText = this.querySelector('.game-subtitle').innerText;
+                    document.getElementById('modalStatus').outerHTML = this.querySelector('.status').outerHTML; 
+                    document.querySelector('.modal-header .status').id = 'modalStatus';
+                    document.getElementById('modalFeatures').innerHTML = this.querySelector('.features-list').innerHTML;
+                    
+                    renderConfigs(JSON.parse(this.getAttribute('data-configs') || '[]'));
+                    updateModalPriceDisplay(); modal.classList.add('active');
+                });
+                
+                const buyBtn = card.querySelector('.buy-btn');
+                if (buyBtn) buyBtn.addEventListener('click', function(e) { e.stopPropagation(); });
+            });
+
+            applyCouponBtn.addEventListener('click', () => {
+                if (couponInput.value.trim().toUpperCase() === 'ADMINFREE') {
+                    isFreeCouponActive = true; couponMsg.style.color = 'var(--discount-color)';
+                    couponMsg.innerText = currentLang === 'ru' ? '✓ Секретный купон применен!' : '✓ Secret coupon applied!';
+                } else {
+                    isFreeCouponActive = false; couponMsg.style.color = '#ef4444';
+                    couponMsg.innerText = currentLang === 'ru' ? '✕ Промокод не найден.' : '✕ Invalid promo code.';
+                }
+                couponMsg.style.display = 'block'; updateModalPriceDisplay();
+            });
+
+            closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+            
+            updateLanguage();
+        });
+    </script>
+</body>
+</html>
